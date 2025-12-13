@@ -1,10 +1,22 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { CompanyType, StructureData } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazy initialization - only create instance when API key is available
+const getAI = () => {
+  // Check both process.env (for Vite define) and import.meta.env (for Vite env vars)
+  const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) || 
+                 (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) ||
+                 (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_GEMINI_API_KEY) ||
+                 (typeof import.meta !== 'undefined' && (import.meta as any).env?.GEMINI_API_KEY);
+  if (!apiKey) {
+    throw new Error("API_KEY or GEMINI_API_KEY environment variable is not set");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const generateStructureFromText = async (prompt: string, currentData: StructureData): Promise<StructureData> => {
   try {
+    const ai = getAI();
     const modelId = "gemini-2.5-flash";
 
     const response = await ai.models.generateContent({

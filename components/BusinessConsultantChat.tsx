@@ -3,7 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { StructureData } from '../types';
 import ReactMarkdown from 'react-markdown';
 
-interface ChatInterfaceProps {
+interface BusinessConsultantChatProps {
   structureData: StructureData;
   isOpen: boolean;
   onClose: () => void;
@@ -14,9 +14,9 @@ interface Message {
   text: string;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, onClose }) => {
+const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structureData, isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: 'Hallo! Ich bin Ihr Assistent für Steuer- und Rechtsfragen zu Ihrer Firmenstruktur. Wie kann ich helfen?' }
+    { role: 'model', text: 'Hallo! Ich bin Ihr Business-Berater. Ich analysiere Ihre Firmenstruktur und identifiziere Geschäftsmöglichkeiten, Synergien und Wachstumspotenziale. Wie kann ich Ihnen helfen?' }
   ]);
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
@@ -94,24 +94,56 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
 
     try {
       const ai = getAI();
+      
+      // Create comprehensive context with all company details
+      const companyDetails = structureData.companies.map(company => {
+        const companyPeople = structureData.people.filter(p => p.companyId === company.id);
+        return {
+          name: company.name,
+          type: company.type,
+          businessJustification: company.businessJustification,
+          financialResources: company.financialResources,
+          companyResources: company.companyResources,
+          people: companyPeople,
+          parentIds: company.parentIds,
+          parentOwnership: company.parentOwnership
+        };
+      });
+
       // Create a chat session with the current structure as context
       const chat = ai.chats.create({
         model: 'gemini-2.5-flash',
         config: {
           systemInstruction: `
-            Du bist ein erfahrener deutscher Wirtschaftsanwalt und Steuerberater.
-            Dein Mandant zeigt dir folgende Firmenstruktur (JSON Format):
-            ${JSON.stringify(structureData)}
+            Du bist ein erfahrener Business-Berater und Strategieberater mit Expertise in Unternehmensstrukturen, Geschäftsentwicklung und Wachstumsstrategien.
+            
+            Dein Mandant zeigt dir folgende Firmenstruktur mit detaillierten Informationen:
+            ${JSON.stringify(companyDetails, null, 2)}
 
-            Deine Aufgabe ist es, Fragen zu dieser Struktur zu beantworten, Risiken aufzuzeigen (z.B. verdeckte Gewinnausschüttung, Organschaft, Haftung) und Optimierungen vorzuschlagen.
-            Antworte präzise, professionell, aber verständlich auf Deutsch.
-            Beziehe dich konkret auf die Namen der Firmen und Personen in der Struktur.
+            Deine Aufgabe ist es:
+            1. Die Firmenstruktur zu analysieren und zu verstehen
+            2. Geschäftsmöglichkeiten und Synergien zwischen den Unternehmen zu identifizieren
+            3. Wachstumspotenziale aufzuzeigen
+            4. Strategische Empfehlungen zu geben
+            5. Risiken und Chancen zu bewerten
+            6. Konkrete Handlungsempfehlungen zu entwickeln
+
+            Berücksichtige dabei:
+            - Die Geschäftszwecke (Unternehmensgegenstände) der einzelnen Firmen
+            - Verfügbare finanzielle Ressourcen
+            - Unternehmensressourcen (Gebäude, etc.)
+            - Schlüsselpersonal und deren Rollen
+            - Beteiligungsverhältnisse und Unternehmensstruktur
+            - Potenzielle Synergien zwischen den Unternehmen
+
+            Antworte strategisch, praxisorientiert und mit konkreten Handlungsempfehlungen auf Deutsch.
+            Beziehe dich konkret auf die Namen der Firmen und deren spezifische Situationen.
           `
         },
         history: messages.map(m => ({
           role: m.role,
           parts: [{ text: m.text }]
-        })).slice(1) // Skip initial greeting for history consistency if needed, strictly Geminis history format handles it.
+        })).slice(1)
       });
 
       const result = await chat.sendMessage({ message: userMsg });
@@ -134,12 +166,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
       style={{ width: `${windowSize.width}px`, height: `${windowSize.height}px` }}
     >
       {/* Header */}
-      <div className="glass-dark p-4 text-white flex justify-between items-center flex-shrink-0 rounded-t-3xl border-b border-white/20">
+      <div className="glass-dark p-4 text-white flex justify-between items-center flex-shrink-0 rounded-t-3xl border-b border-white/20 bg-gradient-to-r from-emerald-700/80 to-emerald-600/80 backdrop-blur-xl">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <h3 className="font-semibold text-sm">Steuer- & Rechts-Chat</h3>
+          <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></div>
+          <h3 className="font-semibold text-sm">Business-Berater</h3>
         </div>
-        <button onClick={onClose} className="text-slate-400 hover:text-white">
+        <button onClick={onClose} className="text-emerald-200 hover:text-white">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -152,7 +184,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] rounded-2xl p-4 shadow-lg ${
               msg.role === 'user' 
-                ? 'glass border border-blue-400/50 bg-blue-600/40 text-white rounded-br-none backdrop-blur-xl' 
+                ? 'glass border border-emerald-400/50 bg-emerald-600/40 text-white rounded-br-none backdrop-blur-xl' 
                 : 'glass border border-white/30 text-slate-800 rounded-bl-none backdrop-blur-xl'
             }`}>
               {msg.role === 'model' ? (
@@ -182,7 +214,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
         {isThinking && (
           <div className="flex justify-start">
             <div className="glass border border-white/30 text-slate-700 rounded-xl p-3 text-xs italic backdrop-blur-xl">
-              Analysiere Struktur...
+              Analysiere Struktur und Geschäftsmöglichkeiten...
             </div>
           </div>
         )}
@@ -195,13 +227,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Stellen Sie eine rechtliche Frage..."
+            placeholder="Fragen Sie nach Geschäftsmöglichkeiten, Synergien, Strategien..."
             className="w-full pl-4 pr-10 py-3 glass border border-white/30 rounded-xl text-sm text-slate-900 focus:ring-2 focus:ring-white/50 outline-none backdrop-blur-xl"
           />
           <button 
             type="submit" 
             disabled={!input.trim() || isThinking}
-            className="absolute right-2 top-2 p-1 text-blue-600 hover:bg-blue-100 rounded-full disabled:opacity-50"
+            className="absolute right-2 top-2 p-1 text-emerald-600 hover:bg-emerald-100 rounded-full disabled:opacity-50"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9-2-9-18-9 18 9-2zm0 0v-8" />
@@ -228,4 +260,4 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
   );
 };
 
-export default ChatInterface;
+export default BusinessConsultantChat;

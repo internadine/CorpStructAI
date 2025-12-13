@@ -6,9 +6,10 @@ interface OrgChartProps {
   companies: Company[];
   people: Person[];
   onNodeClick: (company: Company) => void;
+  onNodePositionUpdate?: (companyId: string, position: { x: number; y: number }) => void;
 }
 
-const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick }) => {
+const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick, onNodePositionUpdate }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -64,16 +65,29 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick }) =
     const nodeWidth = 240;
     const nodeHeight = 130;
     
-    // Tree Layout
+    // Tree Layout - increased vertical spacing to prevent overlap
     const treeLayout = d3.tree<any>()
-      .nodeSize([nodeWidth + 60, nodeHeight + 80])
-      .separation((a, b) => (a.parent === b.parent ? 1.2 : 1.4));
+      .nodeSize([nodeWidth + 60, nodeHeight + 150])
+      .separation((a, b) => (a.parent === b.parent ? 1.3 : 1.6));
       
     treeLayout(root);
+
+    // Apply custom positions if they exist
+    root.each((d: any) => {
+      if (d.data.customPosition) {
+        d.x = d.data.customPosition.x;
+        d.y = d.data.customPosition.y;
+      }
+    });
 
     // Zoom behavior
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove(); // Clear previous
+
+    // Add glass blur filter definitions
+    const defs = svg.append("defs");
+    const filter = defs.append("filter").attr("id", "glass-blur");
+    filter.append("feGaussianBlur").attr("in", "SourceGraphic").attr("stdDeviation", "3");
 
     const g = svg.append("g");
 
@@ -81,6 +95,12 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick }) =
       .scaleExtent([0.1, 2])
       .on("zoom", (event) => {
         g.attr("transform", event.transform);
+      })
+      .filter((event) => {
+        // Allow zoom with wheel, but prevent zoom when dragging nodes
+        // Only allow zoom if not clicking on a node
+        return event.type === 'wheel' || 
+               (event.type === 'mousedown' && !event.target.closest('.node'));
       });
 
     svg.call(zoom);
@@ -123,10 +143,13 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick }) =
     });
 
     // Draw Secondary Links first (dashed)
-    g.selectAll(".link-secondary")
+    const secondaryLinkGroup = g.selectAll(".link-secondary-group")
       .data(secondaryLinks)
       .enter()
-      .append("path")
+      .append("g")
+      .attr("class", "link-secondary-group");
+
+    secondaryLinkGroup.append("path")
       .attr("class", "link-secondary")
       .attr("fill", "none")
       .attr("stroke", "#fbbf24") // Amber for secondary
@@ -140,12 +163,38 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick }) =
           return `M${srcX},${srcY} C${srcX},${(srcY+dstY)/2} ${dstX},${(srcY+dstY)/2} ${dstX},${dstY}`;
       });
 
+    // Add percentage labels to secondary links
+    secondaryLinkGroup.each(function(d: any) {
+      const targetCompany = companies.find(c => c.id === d.target.data.id);
+      const sourceId = d.source.data.id;
+      if (targetCompany && targetCompany.parentOwnership && targetCompany.parentOwnership[sourceId] !== undefined) {
+        const percentage = targetCompany.parentOwnership[sourceId];
+        const midX = (d.source.x + d.target.x) / 2;
+        const midY = (d.source.y + nodeHeight/2 + d.target.y - 20) / 2;
+        
+        d3.select(this).append("text")
+          .attr("x", midX)
+          .attr("y", midY - 5)
+          .attr("text-anchor", "middle")
+          .attr("class", "text-[10px] font-bold fill-amber-600")
+          .attr("paint-order", "stroke")
+          .attr("stroke", "white")
+          .attr("stroke-width", "3px")
+          .attr("stroke-linecap", "round")
+          .attr("stroke-linejoin", "round")
+          .text(`${percentage.toFixed(1)}%`);
+      }
+    });
+
 
     // --- Draw Primary Links ---
-    g.selectAll(".link")
+    const primaryLinkGroup = g.selectAll(".link-group")
       .data(root.links())
       .enter()
-      .append("path")
+      .append("g")
+      .attr("class", "link-group");
+
+    primaryLinkGroup.append("path")
       .attr("class", "link")
       .attr("fill", "none")
       .attr("stroke", "#94a3b8")
@@ -155,152 +204,420 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick }) =
         .y((d: any) => d.y) as any
       );
 
+    // Add percentage labels to primary links
+    primaryLinkGroup.each(function(d: any) {
+      const targetCompany = companies.find(c => c.id === d.target.data.id);
+      const sourceId = d.source.data.id === 'virtual-root' ? null : d.source.data.id;
+      
+      if (targetCompany && sourceId && targetCompany.parentOwnership && targetCompany.parentOwnership[sourceId] !== undefined) {
+        const percentage = targetCompany.parentOwnership[sourceId];
+        const midX = (d.source.x + d.target.x) / 2;
+        const midY = (d.source.y + d.target.y) / 2;
+        
+        d3.select(this).append("text")
+          .attr("x", midX)
+          .attr("y", midY - 5)
+          .attr("text-anchor", "middle")
+          .attr("class", "text-[10px] font-bold fill-slate-600")
+          .attr("paint-order", "stroke")
+          .attr("stroke", "white")
+          .attr("stroke-width", "3px")
+          .attr("stroke-linecap", "round")
+          .attr("stroke-linejoin", "round")
+          .text(`${percentage.toFixed(1)}%`);
+      }
+    });
+
+    // Helper function to update links when a node is dragged
+    const updateLinksForNode = (draggedNode: any, g: any, nodeWidth: number, nodeHeight: number, companies: Company[]) => {
+      // Update primary links
+      g.selectAll(".link-group").each(function(linkData: any) {
+        let needsUpdate = false;
+        let newPath = '';
+        
+        if (linkData.source.id === draggedNode.id) {
+          // This node is the source
+          const srcX = draggedNode.x;
+          const srcY = draggedNode.y + nodeHeight/2;
+          const dstX = linkData.target.x;
+          const dstY = linkData.target.y - 20;
+          newPath = d3.linkVertical()
+            .x((d: any) => d.x)
+            .y((d: any) => d.y)({ source: { x: srcX, y: srcY }, target: { x: dstX, y: dstY } } as any);
+          needsUpdate = true;
+        } else if (linkData.target.id === draggedNode.id) {
+          // This node is the target
+          const srcX = linkData.source.x;
+          const srcY = linkData.source.y + nodeHeight/2;
+          const dstX = draggedNode.x;
+          const dstY = draggedNode.y - 20;
+          newPath = d3.linkVertical()
+            .x((d: any) => d.x)
+            .y((d: any) => d.y)({ source: { x: srcX, y: srcY }, target: { x: dstX, y: dstY } } as any);
+          needsUpdate = true;
+        }
+        
+        if (needsUpdate) {
+          d3.select(this).select("path").attr("d", newPath);
+          
+          // Update percentage label position
+          const targetCompany = companies.find(c => c.id === linkData.target.data.id);
+          const sourceId = linkData.source.data.id === 'virtual-root' ? null : linkData.source.data.id;
+          if (targetCompany && sourceId && targetCompany.parentOwnership && targetCompany.parentOwnership[sourceId] !== undefined) {
+            const percentage = targetCompany.parentOwnership[sourceId];
+            const midX = (linkData.source.x + linkData.target.x) / 2;
+            const midY = (linkData.source.y + linkData.target.y) / 2;
+            d3.select(this).select("text")
+              .attr("x", midX)
+              .attr("y", midY - 5);
+          }
+        }
+      });
+      
+      // Update secondary links
+      g.selectAll(".link-secondary-group").each(function(linkData: any) {
+        let needsUpdate = false;
+        let newPath = '';
+        
+        if (linkData.source.id === draggedNode.id) {
+          const srcX = draggedNode.x;
+          const srcY = draggedNode.y + nodeHeight/2;
+          const dstX = linkData.target.x;
+          const dstY = linkData.target.y - 20;
+          newPath = `M${srcX},${srcY} C${srcX},${(srcY+dstY)/2} ${dstX},${(srcY+dstY)/2} ${dstX},${dstY}`;
+          needsUpdate = true;
+        } else if (linkData.target.id === draggedNode.id) {
+          const srcX = linkData.source.x;
+          const srcY = linkData.source.y + nodeHeight/2;
+          const dstX = draggedNode.x;
+          const dstY = draggedNode.y - 20;
+          newPath = `M${srcX},${srcY} C${srcX},${(srcY+dstY)/2} ${dstX},${(srcY+dstY)/2} ${dstX},${dstY}`;
+          needsUpdate = true;
+        }
+        
+        if (needsUpdate) {
+          d3.select(this).select("path").attr("d", newPath);
+          
+          // Update percentage label position
+          const targetCompany = companies.find(c => c.id === linkData.target.data.id);
+          const sourceId = linkData.source.data.id;
+          if (targetCompany && targetCompany.parentOwnership && targetCompany.parentOwnership[sourceId] !== undefined) {
+            const percentage = targetCompany.parentOwnership[sourceId];
+            const midX = (linkData.source.x + linkData.target.x) / 2;
+            const midY = (linkData.source.y + nodeHeight/2 + linkData.target.y - 20) / 2;
+            d3.select(this).select("text")
+              .attr("x", midX)
+              .attr("y", midY - 5);
+          }
+        }
+      });
+    };
+
     // --- Draw Nodes ---
     const node = g.selectAll(".node")
       .data(root.descendants().slice(1)) // Skip virtual root
       .enter()
       .append("g")
-      .attr("class", "node cursor-pointer transition-opacity hover:opacity-90")
+      .attr("class", "node cursor-move transition-opacity hover:opacity-90")
       .attr("transform", (d: any) => `translate(${d.x},${d.y})`)
       .on("click", (event, d) => {
-        onNodeClick(d.data as Company);
+        // Only trigger click if not dragging
+        if (!event.defaultPrevented) {
+          onNodeClick(d.data as Company);
+        }
       });
 
-    // Card Background
+    // Add drag behavior - works with zoom transform
+    const drag = d3.drag<any, any>()
+      .filter((event) => {
+        // Allow drag on left mouse button, but not on right click or when holding modifier keys
+        return event.button === 0 && !event.ctrlKey && !event.metaKey;
+      })
+      .on("start", function(event, d: any) {
+        d3.select(this).raise().attr("opacity", 0.8);
+        event.sourceEvent.stopPropagation();
+      })
+      .on("drag", function(event, d: any) {
+        // Get current zoom transform
+        const transform = d3.zoomTransform(svg.node()!);
+        // Calculate new position - event.dx/dy are already in screen coordinates
+        // We need to convert to data coordinates by dividing by zoom scale
+        const newX = d.x + event.dx / transform.k;
+        const newY = d.y + event.dy / transform.k;
+        
+        // Update node position in data
+        d.x = newX;
+        d.y = newY;
+        // Update visual position (transform is applied by the g element, so we use data coordinates)
+        d3.select(this).attr("transform", `translate(${newX},${newY})`);
+        
+        // Update links connected to this node
+        updateLinksForNode(d, g, nodeWidth, nodeHeight, companies);
+      })
+      .on("end", function(event, d: any) {
+        d3.select(this).attr("opacity", 1);
+        
+        // Save custom position
+        if (onNodePositionUpdate) {
+          onNodePositionUpdate(d.data.id, { x: d.x, y: d.y });
+        }
+      });
+
+    node.call(drag);
+
+    // Helper function to get node color (custom or default)
+    const getNodeColor = (d: any) => {
+      if (d.data.color) return d.data.color;
+      const type = d.data.type;
+      if (type.includes('Holding')) return '#2563eb'; // blue
+      if (type.includes('GmbH')) return '#059669'; // emerald
+      return '#64748b'; // slate
+    };
+
+    // Card Background - Solid base layer to block lines
     node.append("rect")
       .attr("width", nodeWidth)
-      .attr("height", (d: any) => Math.max(nodeHeight, 70 + (d.data.people?.length || 0) * 22))
+      .attr("height", (d: any) => {
+        let baseHeight = nodeHeight + 7; // Extra space for badge
+        if (d.data.people?.length) baseHeight += d.data.people.length * 22;
+        if (d.data.businessJustification) baseHeight += 30;
+        if (d.data.financialResources) baseHeight += 20;
+        if (d.data.companyResources?.length) baseHeight += d.data.companyResources.length * 18;
+        return Math.max(baseHeight, 77); // Minimum height increased to accommodate badge
+      })
       .attr("x", -nodeWidth / 2)
       .attr("y", 0)
       .attr("rx", 8)
       .attr("ry", 8)
-      .attr("fill", "white")
-      .attr("stroke", (d: any) => {
-        const type = d.data.type;
-        if (type.includes('Holding')) return '#2563eb'; // blue
-        if (type.includes('GmbH')) return '#059669'; // emerald
-        return '#64748b'; // slate
-      })
-      .attr("stroke-width", 2)
-      .attr("filter", "drop-shadow(0px 4px 6px rgba(0,0,0,0.05))");
+      .attr("fill", "rgba(255, 255, 255, 0.95)") // Solid white base to block lines
+      .attr("stroke", "none")
+      .attr("opacity", 1);
 
-    // Header Color Strip
+    // Glass overlay layer for visual effect
+    node.append("rect")
+      .attr("width", nodeWidth)
+      .attr("height", (d: any) => {
+        let baseHeight = nodeHeight + 7;
+        if (d.data.people?.length) baseHeight += d.data.people.length * 22;
+        if (d.data.businessJustification) baseHeight += 30;
+        if (d.data.financialResources) baseHeight += 20;
+        if (d.data.companyResources?.length) baseHeight += d.data.companyResources.length * 18;
+        return Math.max(baseHeight, 77);
+      })
+      .attr("x", -nodeWidth / 2)
+      .attr("y", 0)
+      .attr("rx", 8)
+      .attr("ry", 8)
+      .attr("fill", "rgba(255, 255, 255, 0.4)") // Glass overlay
+      .attr("stroke", getNodeColor)
+      .attr("stroke-width", 2.5)
+      .attr("filter", "drop-shadow(0px 8px 16px rgba(0,0,0,0.25))");
+
+    // Header Color Strip (on top of glass overlay)
     node.append("rect")
       .attr("width", nodeWidth)
       .attr("height", 6)
       .attr("x", -nodeWidth / 2)
       .attr("y", 0)
       .attr("rx", 4)
-      .attr("fill", (d: any) => {
-         const type = d.data.type;
-         if (type.includes('Holding')) return '#2563eb';
-         if (type.includes('GmbH')) return '#059669';
-         return '#64748b';
-      });
+      .attr("fill", getNodeColor)
+      .attr("opacity", 0.9);
 
-    // Company Name
-    node.append("text")
-      .attr("dy", 35)
-      .attr("text-anchor", "middle")
-      .attr("class", "font-bold text-sm fill-slate-800")
-      .style("font-family", "Inter, sans-serif")
-      .text((d: any) => d.data.name.length > 30 ? d.data.name.substring(0, 27) + '...' : d.data.name);
-
-    // Company Type Badge
+    // Company Type Badge (positioned inside node, below header strip)
     node.append("rect")
       .attr("x", -nodeWidth / 2 + 10)
-      .attr("y", -14)
+      .attr("y", 10)
       .attr("width", (d:any) => Math.min(d.data.type.length * 7 + 20, nodeWidth - 20))
-      .attr("height", 26)
-      .attr("rx", 13)
-      .attr("fill", "#f8fafc")
-      .attr("stroke", "#cbd5e1");
+      .attr("height", 18)
+      .attr("rx", 9)
+      .attr("fill", "rgba(255, 255, 255, 0.9)")
+      .attr("stroke", "rgba(203, 213, 225, 0.8)")
+      .attr("stroke-width", 1);
     
     node.append("text")
       .attr("x", -nodeWidth / 2 + 20)
-      .attr("y", 4)
-      .attr("class", "text-[10px] font-bold fill-slate-600 uppercase tracking-wide")
+      .attr("y", 22)
+          .attr("class", "text-[10px] font-bold fill-slate-800 uppercase tracking-wide")
       .text((d: any) => {
           const t = d.data.type;
           return t.length > 25 ? t.substring(0, 22) + '...' : t;
       });
 
-    // Ownership Count Indicator (if multiple parents)
+    // Company Name (positioned below badge)
+    node.append("text")
+      .attr("dy", 45)
+      .attr("text-anchor", "middle")
+          .attr("class", "font-bold text-sm fill-slate-900")
+      .style("font-family", "Inter, sans-serif")
+      .text((d: any) => d.data.name.length > 30 ? d.data.name.substring(0, 27) + '...' : d.data.name);
+
+    // Ownership Count Indicator (if multiple parents) - positioned at top-right inside node
     node.each(function(d: any) {
         if (d.data.parentIds && d.data.parentIds.length > 1) {
             d3.select(this).append("circle")
                 .attr("cx", nodeWidth/2 - 15)
-                .attr("cy", 0)
-                .attr("r", 10)
+                .attr("cy", 19)
+                .attr("r", 9)
                 .attr("fill", "#fbbf24")
-                .attr("stroke", "#fff");
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 2);
             
             d3.select(this).append("text")
                 .attr("x", nodeWidth/2 - 15)
-                .attr("y", 4)
+                .attr("y", 23)
                 .attr("text-anchor", "middle")
                 .attr("class", "text-[10px] font-bold fill-white")
                 .text(d.data.parentIds.length);
         }
     });
 
-    // Separator
+    // Separator (positioned below company name)
     node.append("line")
       .attr("x1", -nodeWidth / 2 + 15)
       .attr("x2", nodeWidth / 2 - 15)
-      .attr("y1", 50)
-      .attr("y2", 50)
+      .attr("y1", 60)
+      .attr("y2", 60)
       .attr("stroke", "#e2e8f0");
 
-    // People List
+    // People List (positioned below separator)
     const peopleGroup = node.append("g")
-      .attr("transform", "translate(0, 65)");
+      .attr("transform", "translate(0, 75)");
 
     peopleGroup.each(function(d: any) {
       const g = d3.select(this);
       const peopleList = d.data.people || [];
+      let yOffset = 0;
       
       peopleList.forEach((p: Person, i: number) => {
         // Icon
         g.append("circle")
           .attr("cx", -nodeWidth/2 + 25)
-          .attr("cy", i * 24)
+          .attr("cy", yOffset + i * 24)
           .attr("r", 4)
           .attr("fill", "#94a3b8");
 
         // Role
         g.append("text")
           .attr("x", -nodeWidth/2 + 36)
-          .attr("y", i * 24 + 4)
-          .attr("class", "text-[11px] fill-slate-500 font-medium")
+          .attr("y", yOffset + i * 24 + 4)
+          .attr("class", "text-[11px] fill-slate-700 font-medium")
           .text(`${p.role}:`);
           
         // Name
         g.append("text")
           .attr("x", -nodeWidth/2 + 36 + (p.role.length * 6) + 10) // Approx spacing
-          .attr("y", i * 24 + 4)
+          .attr("y", yOffset + i * 24 + 4)
           .attr("class", "text-[11px] fill-slate-800 font-semibold")
           .text(p.name);
       });
+      
+      yOffset = peopleList.length * 24;
+      
+      // Business Justification
+      if (d.data.businessJustification) {
+        g.append("line")
+          .attr("x1", -nodeWidth / 2 + 15)
+          .attr("x2", nodeWidth / 2 - 15)
+          .attr("y1", yOffset + 8)
+          .attr("y2", yOffset + 8)
+          .attr("stroke", "#e2e8f0");
+        
+        g.append("text")
+          .attr("x", -nodeWidth/2 + 20)
+          .attr("y", yOffset + 22)
+          .attr("class", "text-[10px] fill-slate-700 font-medium")
+          .text("Gegenstand:");
+        
+        const justificationText = d.data.businessJustification.length > 35 
+          ? d.data.businessJustification.substring(0, 32) + '...'
+          : d.data.businessJustification;
+        
+        g.append("text")
+          .attr("x", -nodeWidth/2 + 20)
+          .attr("y", yOffset + 35)
+          .attr("class", "text-[10px] fill-slate-600")
+          .text(justificationText);
+        
+        yOffset += 30;
+      }
+      
+      // Financial Resources
+      if (d.data.financialResources) {
+        if (yOffset > 0) {
+          g.append("line")
+            .attr("x1", -nodeWidth / 2 + 15)
+            .attr("x2", nodeWidth / 2 - 15)
+            .attr("y1", yOffset + 8)
+            .attr("y2", yOffset + 8)
+            .attr("stroke", "#e2e8f0");
+          yOffset += 8;
+        }
+        
+        const formattedAmount = new Intl.NumberFormat('de-DE', { 
+          style: 'currency', 
+          currency: 'EUR',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+          useGrouping: true
+        }).format(d.data.financialResources);
+        
+        g.append("text")
+          .attr("x", -nodeWidth/2 + 20)
+          .attr("y", yOffset + 18)
+          .attr("class", "text-[10px] fill-slate-700 font-medium")
+          .text("Finanzmittel:");
+        
+        g.append("text")
+          .attr("x", -nodeWidth/2 + 20)
+          .attr("y", yOffset + 30)
+          .attr("class", "text-[10px] fill-emerald-600 font-semibold")
+          .text(formattedAmount);
+        
+        yOffset += 20;
+      }
+      
+      // Company Resources
+      if (d.data.companyResources && d.data.companyResources.length > 0) {
+        if (yOffset > 0) {
+          g.append("line")
+            .attr("x1", -nodeWidth / 2 + 15)
+            .attr("x2", nodeWidth / 2 - 15)
+            .attr("y1", yOffset + 8)
+            .attr("y2", yOffset + 8)
+            .attr("stroke", "#e2e8f0");
+          yOffset += 8;
+        }
+        
+        d.data.companyResources.forEach((resource: any, i: number) => {
+          const resourceText = resource.name + (resource.value ? ` (${new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0, useGrouping: true }).format(resource.value)})` : '');
+          const displayText = resourceText.length > 30 ? resourceText.substring(0, 27) + '...' : resourceText;
+          
+          g.append("text")
+            .attr("x", -nodeWidth/2 + 20)
+            .attr("y", yOffset + 18 + i * 18)
+          .attr("class", "text-[10px] fill-slate-800")
+          .text(`• ${displayText}`);
+        });
+      }
     });
 
   }, [companies, people, dimensions]);
 
   return (
-    <div ref={wrapperRef} className="w-full h-full bg-slate-50 relative overflow-hidden rounded-xl border border-slate-200 shadow-inner">
+    <div ref={wrapperRef} className="OrgChart w-full h-full glass-strong relative overflow-hidden rounded-2xl border border-white/40 shadow-2xl">
       <svg ref={svgRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
-      <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 shadow-sm pointer-events-none">
+      <div className="absolute bottom-4 left-4 glass border border-white/30 px-3 py-2 rounded-xl text-xs text-slate-900 shadow-lg pointer-events-none backdrop-blur-xl font-medium">
         <div className="flex items-center gap-2 mb-1">
-            <span className="w-3 h-0.5 bg-slate-400"></span>
-            <span>Hauptbeteiligung</span>
+            <span className="w-3 h-0.5 bg-slate-600"></span>
+            <span className="font-semibold">Hauptbeteiligung</span>
         </div>
         <div className="flex items-center gap-2">
-            <span className="w-3 h-0.5 bg-amber-400 border-t border-dashed border-amber-400"></span>
-            <span>Nebenbeteiligung</span>
+            <span className="w-3 h-0.5 bg-amber-500 border-t border-dashed border-amber-500"></span>
+            <span className="font-semibold">Nebenbeteiligung</span>
         </div>
       </div>
-      <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur px-3 py-1 rounded text-xs text-slate-500 pointer-events-none">
-        Scrollen zum Zoomen • Ziehen zum Bewegen
+      <div className="absolute bottom-4 right-4 glass border border-white/30 px-3 py-1 rounded-xl text-xs text-slate-900 shadow-lg pointer-events-none backdrop-blur-xl font-medium">
+        Scrollen zum Zoomen • Ziehen zum Bewegen • Knoten verschieben
       </div>
     </div>
   );

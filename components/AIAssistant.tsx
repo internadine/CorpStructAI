@@ -33,7 +33,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
 
   if (!isApiKeyAvailable) {
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+      <div className="glass border border-amber-300/50 rounded-xl p-4 mb-6 backdrop-blur-xl">
         <h3 className="text-amber-800 font-semibold text-sm mb-1">KI-Funktionen deaktiviert</h3>
         <p className="text-amber-700 text-xs">API_KEY Umgebungsvariable fehlt.</p>
       </div>
@@ -41,7 +41,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-indigo-100 p-4 mb-6">
+    <div className="glass border border-indigo-300/50 rounded-2xl shadow-lg p-4 mb-6 backdrop-blur-xl">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
           <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +51,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
         <h2 className="font-semibold text-slate-800">KI Architekt</h2>
       </div>
       
-      <p className="text-xs text-slate-500 mb-3">
+      <p className="text-xs text-slate-800 mb-3 leading-relaxed">
         Beschreiben Sie Ihre Firmenstruktur. Z.B. "Erstelle eine Holding Alpha, die Beta GmbH besitzt. Max Mustermann ist Geschäftsführer der Alpha."
       </p>
 
@@ -61,7 +61,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Struktur beschreiben..."
-            className="w-full text-sm p-3 pr-10 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none h-24 bg-white text-slate-900"
+            className="w-full text-sm p-3 pr-10 glass border border-white/30 rounded-xl focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400/50 outline-none resize-none h-24 text-slate-900 backdrop-blur-xl"
           />
         </div>
         
@@ -70,10 +70,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
         <button
           type="submit"
           disabled={isLoading || !prompt.trim()}
-          className={`mt-3 w-full py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2
+          className={`mt-3 w-full py-2 px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2
             ${isLoading 
-              ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200'
+              ? 'glass border border-white/20 text-slate-500 cursor-not-allowed' 
+              : 'glass border border-indigo-400/50 bg-indigo-600/60 hover:bg-indigo-600/80 text-white shadow-lg backdrop-blur-xl'
             }`}
         >
           {isLoading ? (

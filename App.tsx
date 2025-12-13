@@ -4,6 +4,7 @@ import OrgChart from './components/OrgChart';
 import CompanyEditor from './components/CompanyEditor';
 import AIAssistant from './components/AIAssistant';
 import ChatInterface from './components/ChatInterface';
+import BusinessConsultantChat from './components/BusinessConsultantChat';
 import ProjectManager from './components/ProjectManager';
 import { Company, Person, StructureData, CompanyType, Project } from './types';
 
@@ -37,11 +38,13 @@ const App: React.FC = () => {
   
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isBusinessChatOpen, setIsBusinessChatOpen] = useState(false);
 
   // Load / Init Logic
   useEffect(() => {
     try {
-      const storedProjects = localStorage.getItem('corpStructProjects');
+      // Check for new OrgPhant data first
+      const storedProjects = localStorage.getItem('orgphantProjects');
       if (storedProjects) {
         const parsed = JSON.parse(storedProjects);
         setProjects(parsed);
@@ -53,23 +56,38 @@ const App: React.FC = () => {
           setActiveProjectId(INITIAL_PROJECT.id);
         }
       } else {
-        // Migration Check: Do we have old single-file data?
-        const oldData = localStorage.getItem('corpStructData');
-        if (oldData) {
-          const parsedOld = JSON.parse(oldData);
-          const migratedProject: Project = {
-            id: crypto.randomUUID(),
-            name: 'Importierte Struktur',
-            lastModified: Date.now(),
-            data: parsedOld
-          };
-          setProjects([migratedProject]);
-          setActiveProjectId(migratedProject.id);
-          localStorage.removeItem('corpStructData'); // Cleanup
+        // Migration: Check for old CorpStruct data
+        const oldProjects = localStorage.getItem('corpStructProjects');
+        if (oldProjects) {
+          const parsed = JSON.parse(oldProjects);
+          setProjects(parsed);
+          if (parsed.length > 0) {
+            setActiveProjectId(parsed[0].id);
+          } else {
+            setProjects([INITIAL_PROJECT]);
+            setActiveProjectId(INITIAL_PROJECT.id);
+          }
+          // Migrate to new key
+          localStorage.setItem('orgphantProjects', oldProjects);
         } else {
-          // Fresh start
-          setProjects([INITIAL_PROJECT]);
-          setActiveProjectId(INITIAL_PROJECT.id);
+          // Migration Check: Do we have old single-file data?
+          const oldData = localStorage.getItem('corpStructData');
+          if (oldData) {
+            const parsedOld = JSON.parse(oldData);
+            const migratedProject: Project = {
+              id: crypto.randomUUID(),
+              name: 'Importierte Struktur',
+              lastModified: Date.now(),
+              data: parsedOld
+            };
+            setProjects([migratedProject]);
+            setActiveProjectId(migratedProject.id);
+            localStorage.removeItem('corpStructData'); // Cleanup
+          } else {
+            // Fresh start
+            setProjects([INITIAL_PROJECT]);
+            setActiveProjectId(INITIAL_PROJECT.id);
+          }
         }
       }
     } catch (e) {
@@ -82,7 +100,7 @@ const App: React.FC = () => {
   // Auto-Save Effect
   useEffect(() => {
     if (projects.length > 0) {
-      localStorage.setItem('corpStructProjects', JSON.stringify(projects));
+      localStorage.setItem('orgphantProjects', JSON.stringify(projects));
     }
   }, [projects]);
 
@@ -126,6 +144,15 @@ const App: React.FC = () => {
       people: [...otherPeople, ...updatedPeople]
     };
     updateActiveProjectData(newData);
+  };
+
+  const handleNodePositionUpdate = (companyId: string, position: { x: number; y: number }) => {
+    const companies = data.companies.map(c => 
+      c.id === companyId 
+        ? { ...c, customPosition: position }
+        : c
+    );
+    updateActiveProjectData({ ...data, companies });
   };
 
   // Helper to find all descendants recursively using BFS to avoid recursion stack overflow and handle cycles
@@ -195,11 +222,49 @@ const App: React.FC = () => {
     const original = projects.find(p => p.id === id);
     if (!original) return;
     
+    // Deep copy with new IDs for all companies and people
+    const companyIdMap = new Map<string, string>(); // old ID -> new ID
+    
+    const newCompanies = original.data.companies.map(company => {
+      const newId = crypto.randomUUID();
+      companyIdMap.set(company.id, newId);
+      return {
+        ...company,
+        id: newId,
+        // Update parentIds to use new company IDs
+        parentIds: company.parentIds.map(parentId => {
+          // Find the new ID for this parent, or keep original if not found (shouldn't happen)
+          const newParentId = companyIdMap.get(parentId);
+          return newParentId || parentId;
+        }),
+        // Update parentOwnership keys to use new company IDs
+        parentOwnership: company.parentOwnership ? 
+          Object.fromEntries(
+            Object.entries(company.parentOwnership).map(([parentId, percentage]) => {
+              const newParentId = companyIdMap.get(parentId);
+              return [newParentId || parentId, percentage];
+            })
+          ) : undefined
+      };
+    });
+    
+    const newPeople = original.data.people.map(person => {
+      const newCompanyId = companyIdMap.get(person.companyId);
+      return {
+        ...person,
+        id: crypto.randomUUID(),
+        companyId: newCompanyId || person.companyId
+      };
+    });
+    
     const copy: Project = {
-      ...original,
       id: crypto.randomUUID(),
       name: `${original.name} (Kopie)`,
-      lastModified: Date.now()
+      lastModified: Date.now(),
+      data: {
+        companies: newCompanies,
+        people: newPeople
+      }
     };
     setProjects(prev => [...prev, copy]);
   };
@@ -270,10 +335,130 @@ const App: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const handleExportPDF = async () => {
+    try {
+      const jsPDF = (await import('jspdf')).default;
+      const html2canvas = (await import('html2canvas')).default;
+      
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const orgChartElement = document.querySelector('.OrgChart') || 
+                              document.querySelector('main');
+      
+      if (!orgChartElement) {
+        alert('Org Chart nicht gefunden');
+        return;
+      }
+
+      // Capture the org chart
+      const canvas = await html2canvas(orgChartElement as HTMLElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f1f5f9'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 297; // A4 landscape width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Add org chart image
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+      // Add a second page with detailed company information
+      pdf.addPage();
+      pdf.setFontSize(16);
+      pdf.text('Detaillierte Unternehmensinformationen', 20, 20);
+      
+      let yPos = 30;
+      const pageHeight = 210; // A4 landscape height in mm
+      const margin = 20;
+      const lineHeight = 8;
+
+      data.companies.forEach((company, index) => {
+        // Check if we need a new page
+        if (yPos > pageHeight - 40) {
+          pdf.addPage();
+          yPos = 20;
+        }
+
+        pdf.setFontSize(12);
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${index + 1}. ${company.name}`, margin, yPos);
+        yPos += lineHeight;
+
+        pdf.setFont(undefined, 'normal');
+        pdf.setFontSize(10);
+        pdf.text(`Rechtsform: ${company.type}`, margin, yPos);
+        yPos += lineHeight;
+
+        if (company.businessJustification) {
+          const justification = pdf.splitTextToSize(
+            `Unternehmensgegenstand: ${company.businessJustification}`,
+            imgWidth - 2 * margin
+          );
+          pdf.text(justification, margin, yPos);
+          yPos += justification.length * lineHeight;
+        }
+
+        if (company.financialResources) {
+          const formatted = new Intl.NumberFormat('de-DE', {
+            style: 'currency',
+            currency: 'EUR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+            useGrouping: true
+          }).format(company.financialResources);
+          pdf.text(`Finanzielle Ressourcen: ${formatted}`, margin, yPos);
+          yPos += lineHeight;
+        }
+
+        if (company.companyResources && company.companyResources.length > 0) {
+          pdf.text('Unternehmensressourcen:', margin, yPos);
+          yPos += lineHeight;
+          company.companyResources.forEach(resource => {
+            let resourceText = `  • ${resource.name} (${resource.type})`;
+            if (resource.value) {
+              const formatted = new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+                useGrouping: true
+              }).format(resource.value);
+              resourceText += ` - ${formatted}`;
+            }
+            const resourceLines = pdf.splitTextToSize(resourceText, imgWidth - 2 * margin);
+            pdf.text(resourceLines, margin, yPos);
+            yPos += resourceLines.length * lineHeight;
+          });
+        }
+
+        const companyPeople = data.people.filter(p => p.companyId === company.id);
+        if (companyPeople.length > 0) {
+          pdf.text('Schlüsselpersonal:', margin, yPos);
+          yPos += lineHeight;
+          companyPeople.forEach(person => {
+            pdf.text(`  • ${person.name} - ${person.role}`, margin, yPos);
+            yPos += lineHeight;
+          });
+        }
+
+        yPos += lineHeight; // Space between companies
+      });
+
+      // Save the PDF
+      pdf.save(`${activeProject.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (error) {
+      console.error('PDF Export Fehler:', error);
+      alert('Fehler beim Erstellen der PDF: ' + error);
+    }
+  };
+
   return (
-    <div className="flex h-screen w-full bg-slate-100 font-sans">
+    <div className="flex h-screen w-full font-sans">
       {/* Sidebar Panel */}
-      <div className="flex flex-col border-r border-slate-200 bg-white h-full relative z-20 w-96 shrink-0 shadow-lg">
+      <div className="flex flex-col glass-strong h-full relative z-20 w-96 shrink-0 shadow-2xl">
         <Sidebar 
           currentProjectName={activeProject.name}
           companies={data.companies} 
@@ -282,26 +467,29 @@ const App: React.FC = () => {
           onSelectCompany={setEditingCompany}
           onClear={handleClear}
           onToggleChat={() => setIsChatOpen(!isChatOpen)}
+          onToggleBusinessChat={() => setIsBusinessChatOpen(!isBusinessChatOpen)}
           onExportJSON={handleExportJSON}
+          onExportPDF={handleExportPDF}
           onImportJSON={handleImportJSON}
           onOpenProjectManager={() => setIsProjectManagerOpen(true)}
           onRenameProject={handleRenameProject}
         />
-        <div className="p-4 bg-slate-50 border-t border-slate-200">
+        <div className="p-4 border-t border-white/20">
            <AIAssistant 
              currentData={data} 
              onStructureGenerated={handleStructureGenerated}
-             isApiKeyAvailable={!!process.env.API_KEY}
+             isApiKeyAvailable={!!(process.env?.API_KEY || process.env?.GEMINI_API_KEY || (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_GEMINI_API_KEY) || (typeof import.meta !== 'undefined' && (import.meta as any).env?.GEMINI_API_KEY))}
            />
         </div>
       </div>
 
       {/* Main Visual Canvas */}
-      <main className="flex-1 relative overflow-hidden bg-slate-100 p-4">
+      <main className="flex-1 relative overflow-hidden p-4">
         <OrgChart 
           companies={data.companies} 
           people={data.people}
           onNodeClick={setEditingCompany}
+          onNodePositionUpdate={handleNodePositionUpdate}
         />
       </main>
 
@@ -321,6 +509,12 @@ const App: React.FC = () => {
         structureData={data}
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
+      />
+
+      <BusinessConsultantChat 
+        structureData={data}
+        isOpen={isBusinessChatOpen}
+        onClose={() => setIsBusinessChatOpen(false)}
       />
 
       {isProjectManagerOpen && (

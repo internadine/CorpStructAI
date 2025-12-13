@@ -1,5 +1,5 @@
 {
-  "name": "CorpStruct AI",
-  "description": "A visual tool for business owners to map out company structures, holdings, and key personnel roles, powered by Gemini AI for rapid prototyping.",
+  "name": "OrgPhant",
+  "description": "OrgPhant - A visual tool for business owners to map out company structures, holdings, and key personnel roles, powered by Gemini AI for rapid prototyping.",
   "requestFramePermissions": []
 }

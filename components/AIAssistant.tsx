@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { generateStructureFromText } from '../services/geminiService';
+import { generateStructureFromText } from '../services/openrouterService';
 import { StructureData } from '../types';
 
 interface AIAssistantProps {

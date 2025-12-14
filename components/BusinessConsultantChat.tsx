@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI } from "@google/genai";
 import { StructureData } from '../types';
 import ReactMarkdown from 'react-markdown';
+import { chatCompletion } from '../services/openrouterService';
 
 interface BusinessConsultantChatProps {
   structureData: StructureData;
@@ -24,18 +24,6 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
   const [windowSize, setWindowSize] = useState({ width: 480, height: 700 });
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
-  
-  // Get AI client - lazy initialization
-  const getAI = () => {
-    const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) || 
-                   (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) ||
-                   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_GEMINI_API_KEY) ||
-                   (typeof import.meta !== 'undefined' && (import.meta as any).env?.GEMINI_API_KEY);
-    if (!apiKey) {
-      throw new Error("API_KEY or GEMINI_API_KEY environment variable is not set");
-    }
-    return new GoogleGenAI({ apiKey });
-  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -93,8 +81,6 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
     setIsThinking(true);
 
     try {
-      const ai = getAI();
-      
       // Create comprehensive context with all company details
       const companyDetails = structureData.companies.map(company => {
         const companyPeople = structureData.people.filter(p => p.companyId === company.id);
@@ -110,44 +96,45 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
         };
       });
 
-      // Create a chat session with the current structure as context
-      const chat = ai.chats.create({
-        model: 'gemini-2.5-flash',
-        config: {
-          systemInstruction: `
-            Du bist ein erfahrener Business-Berater und Strategieberater mit Expertise in Unternehmensstrukturen, Geschäftsentwicklung und Wachstumsstrategien.
-            
-            Dein Mandant zeigt dir folgende Firmenstruktur mit detaillierten Informationen:
-            ${JSON.stringify(companyDetails, null, 2)}
+      const systemInstruction = `
+Du bist ein erfahrener Business-Berater und Strategieberater mit Expertise in Unternehmensstrukturen, Geschäftsentwicklung und Wachstumsstrategien.
 
-            Deine Aufgabe ist es:
-            1. Die Firmenstruktur zu analysieren und zu verstehen
-            2. Geschäftsmöglichkeiten und Synergien zwischen den Unternehmen zu identifizieren
-            3. Wachstumspotenziale aufzuzeigen
-            4. Strategische Empfehlungen zu geben
-            5. Risiken und Chancen zu bewerten
-            6. Konkrete Handlungsempfehlungen zu entwickeln
+Dein Mandant zeigt dir folgende Firmenstruktur mit detaillierten Informationen:
+${JSON.stringify(companyDetails, null, 2)}
 
-            Berücksichtige dabei:
-            - Die Geschäftszwecke (Unternehmensgegenstände) der einzelnen Firmen
-            - Verfügbare finanzielle Ressourcen
-            - Unternehmensressourcen (Gebäude, etc.)
-            - Schlüsselpersonal und deren Rollen
-            - Beteiligungsverhältnisse und Unternehmensstruktur
-            - Potenzielle Synergien zwischen den Unternehmen
+Deine Aufgabe ist es:
+1. Die Firmenstruktur zu analysieren und zu verstehen
+2. Geschäftsmöglichkeiten und Synergien zwischen den Unternehmen zu identifizieren
+3. Wachstumspotenziale aufzuzeigen
+4. Strategische Empfehlungen zu geben
+5. Risiken und Chancen zu bewerten
+6. Konkrete Handlungsempfehlungen zu entwickeln
 
-            Antworte strategisch, praxisorientiert und mit konkreten Handlungsempfehlungen auf Deutsch.
-            Beziehe dich konkret auf die Namen der Firmen und deren spezifische Situationen.
-          `
-        },
-        history: messages.map(m => ({
-          role: m.role,
-          parts: [{ text: m.text }]
-        })).slice(1)
+Berücksichtige dabei:
+- Die Geschäftszwecke (Unternehmensgegenstände) der einzelnen Firmen
+- Verfügbare finanzielle Ressourcen
+- Unternehmensressourcen (Gebäude, etc.)
+- Schlüsselpersonal und deren Rollen
+- Beteiligungsverhältnisse und Unternehmensstruktur
+- Potenzielle Synergien zwischen den Unternehmen
+
+Antworte strategisch, praxisorientiert und mit konkreten Handlungsempfehlungen auf Deutsch.
+Beziehe dich konkret auf die Namen der Firmen und deren spezifische Situationen.
+      `.trim();
+
+      // Convert messages to OpenRouter format (skip initial greeting)
+      const chatMessages = messages.slice(1).map(m => ({
+        role: m.role === 'model' ? 'assistant' : m.role,
+        content: m.text
+      }));
+
+      // Add current user message
+      chatMessages.push({
+        role: 'user',
+        content: userMsg
       });
 
-      const result = await chat.sendMessage({ message: userMsg });
-      const responseText = result.text;
+      const responseText = await chatCompletion(chatMessages, systemInstruction);
 
       setMessages(prev => [...prev, { role: 'model', text: responseText }]);
     } catch (error) {

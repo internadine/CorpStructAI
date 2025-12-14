@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI } from "@google/genai";
 import { StructureData } from '../types';
 import ReactMarkdown from 'react-markdown';
+import { chatCompletion } from '../services/openrouterService';
 
 interface ChatInterfaceProps {
   structureData: StructureData;
@@ -24,18 +24,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
   const [windowSize, setWindowSize] = useState({ width: 480, height: 700 });
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
-  
-  // Get AI client - lazy initialization
-  const getAI = () => {
-    const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) || 
-                   (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) ||
-                   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_GEMINI_API_KEY) ||
-                   (typeof import.meta !== 'undefined' && (import.meta as any).env?.GEMINI_API_KEY);
-    if (!apiKey) {
-      throw new Error("API_KEY or GEMINI_API_KEY environment variable is not set");
-    }
-    return new GoogleGenAI({ apiKey });
-  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -93,29 +81,29 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
     setIsThinking(true);
 
     try {
-      const ai = getAI();
-      // Create a chat session with the current structure as context
-      const chat = ai.chats.create({
-        model: 'gemini-2.5-flash',
-        config: {
-          systemInstruction: `
-            Du bist ein erfahrener deutscher Wirtschaftsanwalt und Steuerberater.
-            Dein Mandant zeigt dir folgende Firmenstruktur (JSON Format):
-            ${JSON.stringify(structureData)}
+      const systemInstruction = `
+Du bist ein erfahrener deutscher Wirtschaftsanwalt und Steuerberater.
+Dein Mandant zeigt dir folgende Firmenstruktur (JSON Format):
+${JSON.stringify(structureData)}
 
-            Deine Aufgabe ist es, Fragen zu dieser Struktur zu beantworten, Risiken aufzuzeigen (z.B. verdeckte Gewinnausschüttung, Organschaft, Haftung) und Optimierungen vorzuschlagen.
-            Antworte präzise, professionell, aber verständlich auf Deutsch.
-            Beziehe dich konkret auf die Namen der Firmen und Personen in der Struktur.
-          `
-        },
-        history: messages.map(m => ({
-          role: m.role,
-          parts: [{ text: m.text }]
-        })).slice(1) // Skip initial greeting for history consistency if needed, strictly Geminis history format handles it.
+Deine Aufgabe ist es, Fragen zu dieser Struktur zu beantworten, Risiken aufzuzeigen (z.B. verdeckte Gewinnausschüttung, Organschaft, Haftung) und Optimierungen vorzuschlagen.
+Antworte präzise, professionell, aber verständlich auf Deutsch.
+Beziehe dich konkret auf die Namen der Firmen und Personen in der Struktur.
+      `.trim();
+
+      // Convert messages to OpenRouter format (skip initial greeting)
+      const chatMessages = messages.slice(1).map(m => ({
+        role: m.role === 'model' ? 'assistant' : m.role,
+        content: m.text
+      }));
+
+      // Add current user message
+      chatMessages.push({
+        role: 'user',
+        content: userMsg
       });
 
-      const result = await chat.sendMessage({ message: userMsg });
-      const responseText = result.text;
+      const responseText = await chatCompletion(chatMessages, systemInstruction);
 
       setMessages(prev => [...prev, { role: 'model', text: responseText }]);
     } catch (error) {

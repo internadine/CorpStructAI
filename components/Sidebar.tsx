@@ -1,5 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Company, CompanyType, Person } from '../types';
+import { useAuth } from './Auth/AuthProvider';
+import { getCurrentSubscription } from '../services/subscriptionService';
 
 interface SidebarProps {
   currentProjectName: string;
@@ -35,11 +38,24 @@ const Sidebar: React.FC<SidebarProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(currentProjectName);
+  const { user } = useAuth();
+  const [subscription, setSubscription] = useState<any>(null);
   
   // Sync if prop changes
   useEffect(() => {
     setTempName(currentProjectName);
   }, [currentProjectName]);
+
+  // Load subscription status
+  useEffect(() => {
+    const loadSubscription = async () => {
+      if (user) {
+        const sub = await getCurrentSubscription();
+        setSubscription(sub);
+      }
+    };
+    loadSubscription();
+  }, [user]);
 
   const handleNameSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -195,6 +211,46 @@ const Sidebar: React.FC<SidebarProps> = ({
             className="hidden" 
           />
         </div>
+
+        {/* User Info & Subscription */}
+        {user && (
+          <div className="pt-2 border-t border-white/20 mt-2">
+            <div className="glass border border-white/30 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-slate-700 font-medium truncate">
+                  {user.email}
+                </p>
+                <Link
+                  to="/settings"
+                  className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+                  title="Einstellungen"
+                >
+                  ⚙️
+                </Link>
+              </div>
+              {subscription && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-600 uppercase">Plan:</span>
+                  <span className={`text-xs font-semibold ${
+                    subscription.plan === 'free' 
+                      ? 'text-slate-700' 
+                      : 'text-blue-600'
+                  }`}>
+                    {subscription.plan === 'free' ? 'Kostenlos' : 'Consulting'}
+                  </span>
+                </div>
+              )}
+              {subscription && subscription.plan === 'free' && (
+                <Link
+                  to="/pricing"
+                  className="block w-full mt-2 text-center text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-3 rounded transition-colors"
+                >
+                  Upgraden
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

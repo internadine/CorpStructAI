@@ -1,18 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { generateStructureFromText } from '../services/openrouterService';
 import { StructureData, ProjectType } from '../types';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 
 interface AIAssistantProps {
   currentData: StructureData;
   onStructureGenerated: (data: StructureData) => void;
   isApiKeyAvailable: boolean;
   projectType?: ProjectType;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGenerated, isApiKeyAvailable, projectType }) => {
+const AIAssistant: React.FC<AIAssistantProps> = ({ 
+  currentData, 
+  onStructureGenerated, 
+  isApiKeyAvailable, 
+  projectType,
+  isOpen,
+  onClose
+}) => {
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Voice input
+  const { 
+    isListening, 
+    transcript, 
+    error: voiceError, 
+    isSupported: isVoiceSupported,
+    startListening, 
+    stopListening 
+  } = useVoiceInput({ language: 'en-US' });
+
+  // Sync voice transcript with prompt (append to existing text)
+  useEffect(() => {
+    if (transcript) {
+      setPrompt(prev => prev ? `${prev} ${transcript}` : transcript);
+    }
+  }, [transcript]);
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +60,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
       const newData = await generateStructureFromText(prompt, currentData, projectType);
       onStructureGenerated(newData);
       setPrompt('');
+      onClose(); // Close modal after successful generation
     } catch (err) {
       setError("Error generating structure. Please try again.");
     } finally {
@@ -32,64 +68,139 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
     }
   };
 
+  if (!isOpen) return null;
+
   if (!isApiKeyAvailable) {
     return (
-      <div className="glass border border-amber-300/50 rounded-xl p-4 mb-6 backdrop-blur-xl">
-        <h3 className="text-amber-800 font-semibold text-sm mb-1">AI features disabled</h3>
-        <p className="text-amber-700 text-xs">API_KEY environment variable missing.</p>
+      <div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <div 
+          className="glass-strong rounded-3xl shadow-2xl border border-white/40 p-6 max-w-2xl w-full"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-amber-800 font-semibold text-lg">AI features disabled</h3>
+            <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <p className="text-amber-700 text-sm">API_KEY environment variable missing.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="glass border border-indigo-300/50 rounded-2xl shadow-lg p-4 mb-6 backdrop-blur-xl">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
-          <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        <h2 className="font-semibold text-slate-800">AI Architect</h2>
-      </div>
-      
-      <p className="text-xs text-slate-800 mb-3 leading-relaxed">
-        Describe your company structure. E.g. "Create a holding Alpha that owns Beta GmbH. Max Mustermann is managing director of Alpha."
-      </p>
-
-      <form onSubmit={handleSubmit}>
-        <div className="relative">
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe structure..."
-            className="w-full text-sm p-3 pr-10 glass border border-white/30 rounded-xl focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400/50 outline-none resize-none h-24 text-slate-900 backdrop-blur-xl"
-          />
-        </div>
-        
-        {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={isLoading || !prompt.trim()}
-          className={`mt-3 w-full py-2 px-4 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-2
-            ${isLoading 
-              ? 'glass border border-white/20 text-slate-500 cursor-not-allowed' 
-              : 'glass border border-indigo-400/50 bg-indigo-600/60 hover:bg-indigo-600/80 text-white shadow-lg backdrop-blur-xl'
-            }`}
-        >
-          {isLoading ? (
-            <>
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="glass-strong rounded-3xl shadow-2xl border border-white/40 flex flex-col max-w-4xl w-full max-h-[90vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="glass-dark p-6 text-white flex justify-between items-center flex-shrink-0 rounded-t-3xl border-b border-white/20">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              Thinking...
-            </>
-          ) : (
-            'Generate Structure'
-          )}
-        </button>
-      </form>
+            </div>
+            <div>
+              <h2 className="font-semibold text-lg">AI Architect</h2>
+              <p className="text-xs text-slate-300 mt-1">
+                Describe your company structure. E.g. "Create a holding Alpha that owns Beta GmbH. Max Mustermann is managing director of Alpha."
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <form onSubmit={handleSubmit} className="h-full flex flex-col">
+            <div className="flex-1 mb-4">
+              {/* Voice input controls */}
+              {isVoiceSupported && (
+                <div className="flex items-center gap-3 mb-3">
+                  <button 
+                    type="button"
+                    onClick={toggleVoiceInput}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                      isListening 
+                        ? 'bg-red-500 text-white animate-pulse' 
+                        : 'glass border border-white/30 text-slate-700 hover:bg-white/50'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                    {isListening ? 'Stop Recording' : 'Voice Input'}
+                  </button>
+                  {isListening && (
+                    <span className="text-sm text-red-600 flex items-center gap-1">
+                      <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                      Listening... speak now
+                    </span>
+                  )}
+                </div>
+              )}
+              {voiceError && (
+                <div className="text-xs text-red-500 mb-2">{voiceError}</div>
+              )}
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder={isListening ? "Speak now... your words will appear here" : "Describe your company structure in detail..."}
+                className="w-full text-base p-4 glass border border-white/30 rounded-xl focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400/50 outline-none resize-none h-full min-h-[400px] text-slate-900 backdrop-blur-xl font-sans"
+                autoFocus
+              />
+            </div>
+            
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-xl">
+                <p className="text-red-700 text-sm">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading || !prompt.trim()}
+              className={`w-full py-4 px-6 rounded-xl text-base font-medium transition-all flex items-center justify-center gap-3
+                ${isLoading 
+                  ? 'glass border border-white/20 text-slate-500 cursor-not-allowed' 
+                  : 'glass border border-indigo-400/50 bg-indigo-600/60 hover:bg-indigo-600/80 text-white shadow-lg backdrop-blur-xl'
+                }`}
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Generating Structure...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Generate Structure
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };

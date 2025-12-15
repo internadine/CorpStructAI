@@ -1,4 +1,4 @@
-import { getCurrentUser } from "../lib/auth";
+import { getCurrentUser, isAdminUser } from "../lib/auth";
 import { getSubscription } from "../lib/firestore";
 
 export type SubscriptionPlan = "free" | "consulting" | "premium";
@@ -13,6 +13,9 @@ export interface Subscription {
 export const hasConsultingAccess = async (): Promise<boolean> => {
   const user = getCurrentUser();
   if (!user) return false;
+
+  // Admin override (for testing premium features)
+  if (isAdminUser(user)) return true;
 
   try {
     const subscription = await getSubscription(user.uid);
@@ -40,6 +43,15 @@ export const hasConsultingAccess = async (): Promise<boolean> => {
 export const getCurrentSubscription = async (): Promise<Subscription | null> => {
   const user = getCurrentUser();
   if (!user) return null;
+
+  // Admin override (for testing premium features)
+  if (isAdminUser(user)) {
+    return {
+      plan: "premium",
+      status: "active",
+      currentPeriodEnd: null
+    };
+  }
 
   try {
     const subscription = await getSubscription(user.uid);

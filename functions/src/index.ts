@@ -1,9 +1,22 @@
-import * as functions from "firebase-functions";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { defineSecret } from "firebase-functions/params";
 import * as admin from "firebase-admin";
 
 admin.initializeApp();
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+const OPENROUTER_API_KEY = defineSecret("OPENROUTER_API_KEY");
+
+function getOpenRouterApiKey(): string | undefined {
+  // Primary (Gen2): secret wired via `secrets: [OPENROUTER_API_KEY]`
+  const secretValue = OPENROUTER_API_KEY.value();
+  if (secretValue?.trim()) return secretValue.trim();
+
+  // Fallback (local / emulators): plain env var
+  const envKey = process.env.OPENROUTER_API_KEY;
+  return envKey?.trim() || undefined;
+}
 
 interface OpenRouterRequest {
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
@@ -69,26 +82,27 @@ async function callOpenRouter(
 }
 
 // Cloud Function for chat completions
-export const openrouterChat = functions.https.onCall(async (data, context) => {
-  // Verify user is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      'unauthenticated',
-      'User must be authenticated'
-    );
-  }
+export const openrouterChat = onCall(
+  { region: "europe-west3", secrets: [OPENROUTER_API_KEY] },
+  async (request) => {
+    // Verify user is authenticated
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'User must be authenticated'
+      );
+    }
 
-  // Get API key from environment (set via: firebase functions:config:set openrouter.api_key="your_key")
-  const apiKey = functions.config().openrouter?.api_key;
-  if (!apiKey) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'OpenRouter API key not configured'
-    );
-  }
+    const apiKey = getOpenRouterApiKey();
+    if (!apiKey) {
+      throw new HttpsError(
+        'failed-precondition',
+        'OpenRouter API key not configured'
+      );
+    }
 
   try {
-    const { messages, systemInstruction, model, temperature, max_tokens, response_format } = data;
+    const { messages, systemInstruction, model, temperature, max_tokens, response_format } = request.data;
     
     const response = await callOpenRouter(apiKey, {
       messages,
@@ -102,33 +116,36 @@ export const openrouterChat = functions.https.onCall(async (data, context) => {
     return { success: true, content: response };
   } catch (error: any) {
     console.error('OpenRouter error:', error);
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'Failed to get AI response'
     );
   }
-});
+  }
+);
 
 // Cloud Function for structure generation
-export const openrouterGenerateStructure = functions.https.onCall(async (data, context) => {
-  // Verify user is authenticated
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      'unauthenticated',
-      'User must be authenticated'
-    );
-  }
+export const openrouterGenerateStructure = onCall(
+  { region: "europe-west3", secrets: [OPENROUTER_API_KEY] },
+  async (request) => {
+    // Verify user is authenticated
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'User must be authenticated'
+      );
+    }
 
-  const apiKey = functions.config().openrouter?.api_key;
-  if (!apiKey) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'OpenRouter API key not configured'
-    );
-  }
+    const apiKey = getOpenRouterApiKey();
+    if (!apiKey) {
+      throw new HttpsError(
+        'failed-precondition',
+        'OpenRouter API key not configured'
+      );
+    }
 
   try {
-    const { prompt, currentData, systemPrompt } = data;
+    const { prompt, systemPrompt } = request.data;
     
     const messages = [
       {
@@ -147,12 +164,43 @@ export const openrouterGenerateStructure = functions.https.onCall(async (data, c
     });
 
     const result = JSON.parse(response);
-    return { success: true, data: result };
+
+    // Normalize to the expected schema for the frontend:
+    // { companies: Company[], people: Person[] }
+    const companiesRaw = (result as any)?.companies;
+    const peopleRaw = (result as any)?.people;
+
+    if (!Array.isArray(companiesRaw)) {
+      throw new Error("Invalid AI response: 'companies' missing or not an array");
+    }
+
+    const normalized = {
+      ...result,
+      companies: companiesRaw.map((c: any) => ({
+        ...c,
+        id: String(c?.id ?? crypto.randomUUID()),
+        name: String(c?.name ?? "Unnamed Company"),
+        type: String(c?.type ?? "Unknown"),
+        parentIds: Array.isArray(c?.parentIds) ? c.parentIds.map((x: any) => String(x)) : [],
+      })),
+      people: Array.isArray(peopleRaw)
+        ? peopleRaw.map((p: any) => ({
+            ...p,
+            id: String(p?.id ?? crypto.randomUUID()),
+            name: String(p?.name ?? "Unnamed Person"),
+            role: String(p?.role ?? ""),
+            companyId: String(p?.companyId ?? ""),
+          }))
+        : [],
+    };
+
+    return { success: true, data: normalized };
   } catch (error: any) {
     console.error('OpenRouter structure generation error:', error);
-    throw new functions.https.HttpsError(
+    throw new HttpsError(
       'internal',
       error.message || 'Failed to generate structure'
     );
   }
-});
+  }
+);

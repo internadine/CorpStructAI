@@ -45,6 +45,7 @@ const Dashboard: React.FC = () => {
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isBusinessChatOpen, setIsBusinessChatOpen] = useState(false);
+  const [isArchitectOpen, setIsArchitectOpen] = useState(false);
 
   // Load Projects
   useEffect(() => {
@@ -458,20 +459,13 @@ const Dashboard: React.FC = () => {
             onClear={handleClear}
             onToggleChat={() => setIsChatOpen(!isChatOpen)}
             onToggleBusinessChat={() => setIsBusinessChatOpen(!isBusinessChatOpen)}
+            onToggleArchitect={() => setIsArchitectOpen(!isArchitectOpen)}
             onExportJSON={handleExportJSON}
             onExportPDF={handleExportPDF}
             onImportJSON={handleImportJSON}
             onOpenProjectManager={() => setIsProjectManagerOpen(true)}
             onRenameProject={handleRenameProject}
           />
-          <div className="p-4 border-t border-white/20">
-             <AIAssistant 
-               currentData={data} 
-               onStructureGenerated={handleStructureGenerated}
-               isApiKeyAvailable={true}
-               projectType={activeProject.projectType}
-             />
-          </div>
         </div>
       </div>
 
@@ -581,6 +575,17 @@ const Dashboard: React.FC = () => {
           onDeleteProject={handleDeleteProject}
           onRenameProject={handleRenameProjectById}
           onClose={() => setIsProjectManagerOpen(false)}
+        />
+      )}
+
+      {isArchitectOpen && (
+        <AIAssistant 
+          currentData={data} 
+          onStructureGenerated={handleStructureGenerated}
+          isApiKeyAvailable={true}
+          projectType={activeProject.projectType}
+          isOpen={isArchitectOpen}
+          onClose={() => setIsArchitectOpen(false)}
         />
       )}
     </div>

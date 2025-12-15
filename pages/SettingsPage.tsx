@@ -154,7 +154,11 @@ const SettingsPage: React.FC = () => {
               <div>
                 <p className="text-sm text-slate-600 mb-1">Current Plan</p>
                 <p className="text-xl font-bold text-slate-900 capitalize">
-                  {subscription.plan === "free" ? "Free" : "Consulting"}
+                  {subscription.plan === "free"
+                    ? "Free"
+                    : subscription.plan === "premium"
+                      ? "Premium"
+                      : "Consulting"}
                 </p>
               </div>
               <div>

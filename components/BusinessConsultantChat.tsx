@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StructureData, ProjectType } from '../types';
 import ReactMarkdown from 'react-markdown';
 import { chatCompletion, getBusinessConsultantSystemInstruction } from '../services/openrouterService';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 
 interface BusinessConsultantChatProps {
   structureData: StructureData;
@@ -26,6 +27,31 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
   const [windowSize, setWindowSize] = useState({ width: 480, height: 700 });
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
+
+  // Voice input
+  const { 
+    isListening, 
+    transcript, 
+    error: voiceError, 
+    isSupported: isVoiceSupported,
+    startListening, 
+    stopListening 
+  } = useVoiceInput({ language: 'en-US' });
+
+  // Sync voice transcript with input
+  useEffect(() => {
+    if (transcript) {
+      setInput(transcript);
+    }
+  }, [transcript]);
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -187,23 +213,54 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
 
       {/* Input */}
       <form onSubmit={handleSend} className="p-3 border-t border-white/20 flex-shrink-0">
-        <div className="relative">
+        {/* Voice error message */}
+        {voiceError && (
+          <div className="text-xs text-red-500 mb-2 px-1">{voiceError}</div>
+        )}
+        {/* Listening indicator */}
+        {isListening && (
+          <div className="text-xs text-emerald-600 mb-2 px-1 flex items-center gap-1">
+            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            Listening...
+          </div>
+        )}
+        <div className="relative flex items-center gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about business opportunities, synergies, strategies..."
-            className="w-full pl-4 pr-10 py-3 glass border border-white/30 rounded-xl text-sm text-slate-900 focus:ring-2 focus:ring-white/50 outline-none backdrop-blur-xl"
+            placeholder={isListening ? "Speak now..." : "Ask about business opportunities, synergies, strategies..."}
+            className="w-full pl-4 pr-20 py-3 glass border border-white/30 rounded-xl text-sm text-slate-900 focus:ring-2 focus:ring-white/50 outline-none backdrop-blur-xl"
           />
-          <button 
-            type="submit" 
-            disabled={!input.trim() || isThinking}
-            className="absolute right-2 top-2 p-1 text-emerald-600 hover:bg-emerald-100 rounded-full disabled:opacity-50"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9-2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
+          <div className="absolute right-2 top-2 flex items-center gap-1">
+            {/* Microphone button */}
+            {isVoiceSupported && (
+              <button 
+                type="button"
+                onClick={toggleVoiceInput}
+                className={`p-1 rounded-full transition-colors ${
+                  isListening 
+                    ? 'text-red-500 bg-red-100 animate-pulse' 
+                    : 'text-slate-500 hover:bg-slate-100'
+                }`}
+                title={isListening ? "Stop recording" : "Start voice input"}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </button>
+            )}
+            {/* Send button */}
+            <button 
+              type="submit" 
+              disabled={!input.trim() || isThinking}
+              className="p-1.5 text-white bg-emerald-500 hover:bg-emerald-600 rounded-full disabled:opacity-40 disabled:bg-slate-300 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              </svg>
+            </button>
+          </div>
         </div>
       </form>
 

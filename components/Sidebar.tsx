@@ -13,6 +13,7 @@ interface SidebarProps {
   onClear: () => void;
   onToggleChat: () => void;
   onToggleBusinessChat: () => void;
+  onToggleArchitect: () => void;
   onExportJSON: () => void;
   onExportPDF: () => void;
   onImportJSON: (file: File) => void;
@@ -29,6 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onClear, 
   onToggleChat,
   onToggleBusinessChat,
+  onToggleArchitect,
   onExportJSON,
   onExportPDF,
   onImportJSON,
@@ -139,6 +141,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         ) : (
           companies.map(c => (
+            (() => {
+              const typeStr = typeof c.type === "string" ? c.type : "";
+              const isHolding =
+                c.type === CompanyType.HOLDING || typeStr.toLowerCase().includes("holding");
+              const typeLabel = typeStr || "Unknown";
+
+              return (
             <div 
               key={c.id} 
               onClick={() => onSelectCompany(c)}
@@ -147,19 +156,21 @@ const Sidebar: React.FC<SidebarProps> = ({
               <div>
                 <div className="font-semibold text-sm text-slate-800 group-hover:text-indigo-700">{c.name}</div>
                 <div className="text-xs text-slate-600 flex items-center gap-2">
-                  <span className={`inline-block w-2 h-2 rounded-full ${c.type.includes('Holding') ? 'bg-blue-500' : 'bg-emerald-500'}`}></span>
-                  <span className="truncate max-w-[120px]">{c.type}</span>
+                  <span className={`inline-block w-2 h-2 rounded-full ${isHolding ? 'bg-blue-500' : 'bg-emerald-500'}`}></span>
+                  <span className="truncate max-w-[120px]">{typeLabel}</span>
                 </div>
               </div>
               <div className="text-xs glass border border-white/20 text-slate-700 px-2 py-1 rounded-lg font-medium">
                 {getPeopleCount(c.id)} <span className="text-[10px]">Pers.</span>
               </div>
             </div>
+              );
+            })()
           ))
         )}
       </div>
 
-      <div className="p-4 border-t border-white/20 space-y-3 flex-shrink-0">
+      <div className="p-4 border-t border-white/20 space-y-3 flex-shrink-0 bg-slate-50/50 backdrop-blur-sm">
         <button 
           onClick={onAddCompany}
           className="w-full py-2.5 glass border border-white/30 hover:border-white/50 text-slate-800 rounded-xl text-sm font-medium shadow-sm transition-all hover:bg-white/30 flex items-center justify-center gap-2"
@@ -169,6 +180,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <div className="grid grid-cols-1 gap-2">
+          <button 
+            onClick={onToggleArchitect}
+            className="w-full py-2.5 glass border border-purple-300/50 hover:border-purple-400/70 text-purple-800 rounded-xl text-sm font-medium shadow-sm transition-all hover:bg-purple-500/20 flex items-center justify-center gap-2 backdrop-blur-xl"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            AI Architect
+          </button>
+          
           <button 
             onClick={onToggleChat}
             className="w-full py-2.5 glass border border-indigo-300/50 hover:border-indigo-400/70 text-indigo-800 rounded-xl text-sm font-medium shadow-sm transition-all hover:bg-indigo-500/20 flex items-center justify-center gap-2 backdrop-blur-xl"
@@ -239,7 +258,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                       ? 'text-slate-700' 
                       : 'text-blue-600'
                   }`}>
-                    {subscription.plan === 'free' ? 'Free' : 'Consulting'}
+                    {subscription.plan === 'free'
+                      ? 'Free'
+                      : subscription.plan === 'premium'
+                        ? 'Premium'
+                        : 'Consulting'}
                   </span>
                 </div>
               )}

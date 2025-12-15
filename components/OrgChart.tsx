@@ -314,30 +314,45 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick, onN
     };
 
     // --- Draw Nodes ---
+    // Track which nodes were actually dragged to prevent click events
+    const draggedNodes = new Set<string>();
+    
     const node = g.selectAll(".node")
       .data(root.descendants().slice(1)) // Skip virtual root
       .enter()
       .append("g")
       .attr("class", "node cursor-move transition-opacity hover:opacity-90")
       .attr("transform", (d: any) => `translate(${d.x},${d.y})`)
-      .on("click", (event, d) => {
-        // Only trigger click if not dragging
-        if (!event.defaultPrevented) {
+      .on("click", (event, d: any) => {
+        // Only trigger click if node wasn't dragged
+        if (!draggedNodes.has(d.data.id)) {
+          event.stopPropagation();
           onNodeClick(d.data as Company);
         }
+        // Clear the dragged flag after handling click
+        draggedNodes.delete(d.data.id);
       });
 
     // Add drag behavior - works with zoom transform
     const drag = d3.drag<any, any>()
       .filter((event) => {
         // Allow drag on left mouse button, but not on right click or when holding modifier keys
-        return event.button === 0 && !event.ctrlKey && !event.metaKey;
+        // Also prevent drag if clicking on settings icon
+        const target = event.target as HTMLElement;
+        const isSettingsIcon = target.closest('.settings-icon') !== null;
+        return event.button === 0 && !event.ctrlKey && !event.metaKey && !isSettingsIcon;
       })
       .on("start", function(event, d: any) {
         d3.select(this).raise().attr("opacity", 0.8);
-        event.sourceEvent.stopPropagation();
+        // Don't stop propagation here - let click handler check if drag occurred
       })
       .on("drag", function(event, d: any) {
+        // Mark this node as dragged if it moved significantly
+        const moveDistance = Math.sqrt(event.dx * event.dx + event.dy * event.dy);
+        if (moveDistance > 3) { // Threshold to distinguish click from drag
+          draggedNodes.add(d.data.id);
+        }
+        
         // Get current zoom transform
         const transform = d3.zoomTransform(svg.node()!);
         // Calculate new position - event.dx/dy are already in screen coordinates
@@ -357,8 +372,8 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick, onN
       .on("end", function(event, d: any) {
         d3.select(this).attr("opacity", 1);
         
-        // Save custom position
-        if (onNodePositionUpdate) {
+        // Save custom position if node was actually moved
+        if (draggedNodes.has(d.data.id) && onNodePositionUpdate) {
           onNodePositionUpdate(d.data.id, { x: d.x, y: d.y });
         }
       });
@@ -451,11 +466,60 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick, onN
       .style("font-family", "Inter, sans-serif")
       .text((d: any) => d.data.name.length > 30 ? d.data.name.substring(0, 27) + '...' : d.data.name);
 
-    // Ownership Count Indicator (if multiple parents) - positioned at top-right inside node
+    // Settings wheel icon - clickable to open edit modal (positioned first to avoid overlap)
+    node.each(function(d: any) {
+        const settingsGroup = d3.select(this).append("g")
+            .attr("class", "settings-icon")
+            .attr("transform", `translate(${nodeWidth/2 - 22}, 19)`)
+            .style("cursor", "pointer")
+            .style("pointer-events", "all")
+            .on("click", function(event) {
+                event.stopPropagation();
+                event.preventDefault();
+                onNodeClick(d.data as Company);
+            })
+            .on("mouseenter", function() {
+                d3.select(this).select("circle").attr("fill", "rgba(99, 102, 241, 0.2)");
+                d3.select(this).selectAll("path").attr("stroke", "#6366f1");
+            })
+            .on("mouseleave", function() {
+                d3.select(this).select("circle").attr("fill", "rgba(255, 255, 255, 0.6)");
+                d3.select(this).selectAll("path").attr("stroke", "#64748b");
+            });
+
+        // Background circle
+        settingsGroup.append("circle")
+            .attr("r", 12)
+            .attr("fill", "rgba(255, 255, 255, 0.6)")
+            .attr("stroke", "rgba(100, 116, 139, 0.3)")
+            .attr("stroke-width", 1);
+
+        // Settings gear icon (SVG path)
+        settingsGroup.append("path")
+            .attr("d", "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z")
+            .attr("transform", "scale(0.4) translate(-12, -12)")
+            .attr("fill", "none")
+            .attr("stroke", "#64748b")
+            .attr("stroke-width", "2.5")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-linejoin", "round");
+        
+        settingsGroup.append("path")
+            .attr("d", "M15 12a3 3 0 11-6 0 3 3 0 016 0z")
+            .attr("transform", "scale(0.4) translate(-12, -12)")
+            .attr("fill", "none")
+            .attr("stroke", "#64748b")
+            .attr("stroke-width", "2.5")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-linejoin", "round");
+    });
+
+    // Ownership Count Indicator (if multiple parents) - positioned to the left of settings wheel
     node.each(function(d: any) {
         if (d.data.parentIds && d.data.parentIds.length > 1) {
+            // Position to the left of settings wheel (which is at nodeWidth/2 - 22)
             d3.select(this).append("circle")
-                .attr("cx", nodeWidth/2 - 15)
+                .attr("cx", nodeWidth/2 - 50)
                 .attr("cy", 19)
                 .attr("r", 9)
                 .attr("fill", "#fbbf24")
@@ -463,7 +527,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick, onN
                 .attr("stroke-width", 2);
             
             d3.select(this).append("text")
-                .attr("x", nodeWidth/2 - 15)
+                .attr("x", nodeWidth/2 - 50)
                 .attr("y", 23)
                 .attr("text-anchor", "middle")
                 .attr("class", "text-[10px] font-bold fill-white")

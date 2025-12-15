@@ -16,7 +16,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app);
+const functionsRegion = import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION || "europe-west3";
+const functions = getFunctions(app, functionsRegion);
 
 export { auth, db, functions };
 export default app;

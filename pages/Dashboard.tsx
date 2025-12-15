@@ -284,6 +284,20 @@ const Dashboard: React.FC = () => {
     ));
   };
 
+  const handleUpdateProject = (id: string, updates: { name?: string; projectType?: ProjectType; country?: string }) => {
+    setProjects(prev => prev.map(p => 
+      p.id === id 
+        ? { 
+            ...p, 
+            name: updates.name ?? p.name,
+            projectType: updates.projectType ?? p.projectType,
+            country: updates.country,
+            lastModified: Date.now() 
+          } 
+        : p
+    ));
+  };
+
   // -- Export / Import Handlers --
 
   const handleExportJSON = () => {
@@ -574,6 +588,7 @@ const Dashboard: React.FC = () => {
           onDuplicateProject={handleDuplicateProject}
           onDeleteProject={handleDeleteProject}
           onRenameProject={handleRenameProjectById}
+          onUpdateProject={handleUpdateProject}
           onClose={() => setIsProjectManagerOpen(false)}
         />
       )}

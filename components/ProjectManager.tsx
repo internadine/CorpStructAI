@@ -9,6 +9,7 @@ interface ProjectManagerProps {
   onDuplicateProject: (id: string) => void;
   onDeleteProject: (id: string) => void;
   onRenameProject: (id: string, newName: string) => void;
+  onUpdateProject?: (id: string, updates: { name?: string; projectType?: ProjectType; country?: string }) => void;
   onClose: () => void;
 }
 
@@ -79,6 +80,7 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
   onDuplicateProject,
   onDeleteProject,
   onRenameProject,
+  onUpdateProject,
   onClose
 }) => {
   const [isCreating, setIsCreating] = useState(false);
@@ -87,6 +89,12 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
   const [newProjectCountry, setNewProjectCountry] = useState<string>('');
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  
+  // Settings editing state
+  const [settingsProjectId, setSettingsProjectId] = useState<string | null>(null);
+  const [settingsName, setSettingsName] = useState('');
+  const [settingsType, setSettingsType] = useState<ProjectType>(ProjectType.CORPORATE_STRUCTURE);
+  const [settingsCountry, setSettingsCountry] = useState<string>('');
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +119,35 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
       onRenameProject(editingProjectId, editName.trim());
       setEditingProjectId(null);
     }
+  };
+
+  const openSettings = (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSettingsProjectId(project.id);
+    setSettingsName(project.name);
+    setSettingsType(project.projectType || ProjectType.CORPORATE_STRUCTURE);
+    setSettingsCountry(project.country || '');
+  };
+
+  const saveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (settingsProjectId && settingsName.trim()) {
+      if (onUpdateProject) {
+        onUpdateProject(settingsProjectId, {
+          name: settingsName.trim(),
+          projectType: settingsType,
+          country: settingsCountry || undefined
+        });
+      } else {
+        // Fallback to just renaming if onUpdateProject is not provided
+        onRenameProject(settingsProjectId, settingsName.trim());
+      }
+      setSettingsProjectId(null);
+    }
+  };
+
+  const closeSettings = () => {
+    setSettingsProjectId(null);
   };
 
   return (
@@ -247,16 +284,16 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
                 
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
-                    onClick={(e) => startEditing(project, e)}
-                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                    title="Umbenennen"
+                    onClick={(e) => openSettings(project, e)}
+                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"
+                    title="Settings"
                   >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   </button>
                   <button 
                     onClick={(e) => { e.stopPropagation(); onDuplicateProject(project.id); }}
                     className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                    title="Duplizieren"
+                    title="Duplicate"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>
                   </button>
@@ -283,6 +320,80 @@ const ProjectManager: React.FC<ProjectManagerProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Settings Modal */}
+      {settingsProjectId && (
+        <div 
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={closeSettings}
+        >
+          <div 
+            className="glass-strong rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-white/40"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-white/20">
+              <h3 className="font-bold text-slate-800 text-lg">Project Settings</h3>
+              <p className="text-slate-600 text-sm mt-1">Edit project details</p>
+            </div>
+            
+            <form onSubmit={saveSettings} className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Project Name</label>
+                <input
+                  type="text"
+                  value={settingsName}
+                  onChange={(e) => setSettingsName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/30 text-sm glass text-slate-900 backdrop-blur-xl focus:ring-2 focus:ring-indigo-400/50 outline-none"
+                  autoFocus
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Project Type</label>
+                <select
+                  value={settingsType}
+                  onChange={(e) => setSettingsType(e.target.value as ProjectType)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/30 text-sm glass text-slate-900 backdrop-blur-xl focus:ring-2 focus:ring-indigo-400/50 outline-none"
+                >
+                  {Object.values(ProjectType).map(type => (
+                    <option key={type} value={type}>{PROJECT_TYPE_LABELS[type]}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Country (for Tax/Legal advice)</label>
+                <select
+                  value={settingsCountry}
+                  onChange={(e) => setSettingsCountry(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-white/30 text-sm glass text-slate-900 backdrop-blur-xl focus:ring-2 focus:ring-indigo-400/50 outline-none"
+                >
+                  {COUNTRIES.map(country => (
+                    <option key={country.code} value={country.code}>{country.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeSettings}
+                  className="flex-1 px-4 py-2.5 glass border border-white/30 text-slate-700 text-sm font-medium hover:bg-white/30 rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!settingsName.trim()}
+                  className="flex-1 px-4 py-2.5 glass border border-indigo-400/50 bg-indigo-600/60 text-white text-sm font-medium rounded-xl hover:bg-indigo-600/80 disabled:opacity-50 transition-all"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

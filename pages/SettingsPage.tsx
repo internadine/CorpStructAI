@@ -56,11 +56,11 @@ const SettingsPage: React.FC = () => {
 
     try {
       await updateCurrentUserProfile({ displayName });
-      setMessage("Profil erfolgreich aktualisiert");
+      setMessage("Profile successfully updated");
       const updated = await getCurrentUserProfile();
       if (updated) setProfile(updated);
     } catch (e: any) {
-      setMessage("Fehler beim Speichern: " + e.message);
+      setMessage("Error saving: " + e.message);
     } finally {
       setSaving(false);
     }
@@ -83,19 +83,19 @@ const SettingsPage: React.FC = () => {
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-slate-900 mb-8">
-          Einstellungen
+          Settings
         </h1>
 
         {/* Profile Section */}
         <div className="glass-strong p-8 rounded-2xl mb-6">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">
-            Profil
+            Profile
           </h2>
           <form onSubmit={handleSaveProfile}>
             <div className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-slate-800 mb-2">
-                  E-Mail
+                  Email
                 </label>
                 <input
                   id="email"
@@ -105,7 +105,7 @@ const SettingsPage: React.FC = () => {
                   className="w-full glass px-4 py-3 rounded-lg text-slate-600 bg-white/20"
                 />
                 <p className="text-sm text-slate-600 mt-1">
-                  E-Mail-Adresse kann nicht geändert werden
+                  Email address cannot be changed
                 </p>
               </div>
 
@@ -119,13 +119,13 @@ const SettingsPage: React.FC = () => {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="w-full glass px-4 py-3 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ihr Name"
+                  placeholder="Your Name"
                 />
               </div>
 
               {message && (
                 <div className={`px-4 py-3 rounded ${
-                  message.includes("Fehler") 
+                  message.includes("Error") 
                     ? "bg-red-100 text-red-700" 
                     : "bg-green-100 text-green-700"
                 }`}>
@@ -138,7 +138,7 @@ const SettingsPage: React.FC = () => {
                 disabled={saving}
                 className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
               >
-                {saving ? "Speichern..." : "Profil speichern"}
+                {saving ? "Saving..." : "Save Profile"}
               </button>
             </div>
           </form>
@@ -147,27 +147,27 @@ const SettingsPage: React.FC = () => {
         {/* Subscription Section */}
         <div className="glass-strong p-8 rounded-2xl mb-6">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">
-            Abonnement
+            Subscription
           </h2>
           {subscription ? (
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Aktueller Plan</p>
+                <p className="text-sm text-slate-600 mb-1">Current Plan</p>
                 <p className="text-xl font-bold text-slate-900 capitalize">
-                  {subscription.plan === "free" ? "Kostenlos" : "Consulting"}
+                  {subscription.plan === "free" ? "Free" : "Consulting"}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-slate-600 mb-1">Status</p>
                 <p className="text-lg font-semibold text-slate-900 capitalize">
-                  {subscription.status === "active" ? "Aktiv" : subscription.status}
+                  {subscription.status === "active" ? "Active" : subscription.status}
                 </p>
               </div>
               {subscription.currentPeriodEnd && (
                 <div>
-                  <p className="text-sm text-slate-600 mb-1">Läuft ab am</p>
+                  <p className="text-sm text-slate-600 mb-1">Expires on</p>
                   <p className="text-lg text-slate-900">
-                    {new Date(subscription.currentPeriodEnd).toLocaleDateString("de-DE")}
+                    {new Date(subscription.currentPeriodEnd).toLocaleDateString("en-US")}
                   </p>
                 </div>
               )}
@@ -176,25 +176,25 @@ const SettingsPage: React.FC = () => {
                   href="/pricing"
                   className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
                 >
-                  Jetzt upgraden
+                  Upgrade Now
                 </a>
               )}
             </div>
           ) : (
-            <p className="text-slate-700">Lade Abonnement-Informationen...</p>
+            <p className="text-slate-700">Loading subscription information...</p>
           )}
         </div>
 
         {/* Logout Section */}
         <div className="glass-strong p-8 rounded-2xl">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">
-            Konto
+            Account
           </h2>
           <button
             onClick={handleLogout}
             className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            Abmelden
+            Logout
           </button>
         </div>
       </div>

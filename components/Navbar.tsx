@@ -23,57 +23,57 @@ const Navbar: React.FC = () => {
                 alt="OrgPhant Logo"
                 className="h-10 w-auto mr-3"
               />
-              <span className="text-xl font-bold text-slate-900">OrgPhant</span>
+              <span className="text-xl font-bold text-white drop-shadow-lg">OrgPhant</span>
             </Link>
           </div>
 
           <div className="flex items-center space-x-6">
             <Link
               to="/features"
-              className="text-slate-800 hover:text-slate-900 font-medium"
+              className="text-white/90 hover:text-white font-medium transition-colors"
             >
-              Funktionen
+              Features
             </Link>
             <Link
               to="/pricing"
-              className="text-slate-800 hover:text-slate-900 font-medium"
+              className="text-white/90 hover:text-white font-medium transition-colors"
             >
-              Preise
+              Pricing
             </Link>
             {user ? (
               <>
                 <Link
                   to="/app"
-                  className="text-slate-800 hover:text-slate-900 font-medium"
+                  className="text-white/90 hover:text-white font-medium transition-colors"
                 >
                   Dashboard
                 </Link>
                 <Link
                   to="/settings"
-                  className="text-slate-800 hover:text-slate-900 font-medium"
+                  className="text-white/90 hover:text-white font-medium transition-colors"
                 >
-                  Einstellungen
+                  Settings
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="text-slate-800 hover:text-slate-900 font-medium"
+                  className="text-white/90 hover:text-white font-medium transition-colors"
                 >
-                  Abmelden
+                  Logout
                 </button>
               </>
             ) : (
               <>
                 <Link
                   to="/login"
-                  className="text-slate-800 hover:text-slate-900 font-medium"
+                  className="text-white/90 hover:text-white font-medium transition-colors"
                 >
-                  Anmelden
+                  Login
                 </Link>
                 <Link
                   to="/signup"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-xl text-white font-semibold py-2 px-4 rounded-lg transition-colors border border-white/30"
                 >
-                  Registrieren
+                  Sign Up
                 </Link>
               </>
             )}

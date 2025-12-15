@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StructureData } from '../types';
+import { StructureData, ProjectType } from '../types';
 import ReactMarkdown from 'react-markdown';
-import { chatCompletion } from '../services/openrouterService';
+import { chatCompletion, getBusinessConsultantSystemInstruction } from '../services/openrouterService';
 
 interface BusinessConsultantChatProps {
   structureData: StructureData;
   isOpen: boolean;
   onClose: () => void;
+  projectType?: ProjectType;
+  country?: string;
 }
 
 interface Message {
@@ -14,9 +16,9 @@ interface Message {
   text: string;
 }
 
-const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structureData, isOpen, onClose }) => {
+const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structureData, isOpen, onClose, projectType, country }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: 'Hallo! Ich bin Ihr Business-Berater. Ich analysiere Ihre Firmenstruktur und identifiziere Geschäftsmöglichkeiten, Synergien und Wachstumspotenziale. Wie kann ich Ihnen helfen?' }
+    { role: 'model', text: 'Hello! I am your Business Consultant. I analyze your company structure and identify business opportunities, synergies, and growth potential. How can I help you?' }
   ]);
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
@@ -96,31 +98,7 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
         };
       });
 
-      const systemInstruction = `
-Du bist ein erfahrener Business-Berater und Strategieberater mit Expertise in Unternehmensstrukturen, Geschäftsentwicklung und Wachstumsstrategien.
-
-Dein Mandant zeigt dir folgende Firmenstruktur mit detaillierten Informationen:
-${JSON.stringify(companyDetails, null, 2)}
-
-Deine Aufgabe ist es:
-1. Die Firmenstruktur zu analysieren und zu verstehen
-2. Geschäftsmöglichkeiten und Synergien zwischen den Unternehmen zu identifizieren
-3. Wachstumspotenziale aufzuzeigen
-4. Strategische Empfehlungen zu geben
-5. Risiken und Chancen zu bewerten
-6. Konkrete Handlungsempfehlungen zu entwickeln
-
-Berücksichtige dabei:
-- Die Geschäftszwecke (Unternehmensgegenstände) der einzelnen Firmen
-- Verfügbare finanzielle Ressourcen
-- Unternehmensressourcen (Gebäude, etc.)
-- Schlüsselpersonal und deren Rollen
-- Beteiligungsverhältnisse und Unternehmensstruktur
-- Potenzielle Synergien zwischen den Unternehmen
-
-Antworte strategisch, praxisorientiert und mit konkreten Handlungsempfehlungen auf Deutsch.
-Beziehe dich konkret auf die Namen der Firmen und deren spezifische Situationen.
-      `.trim();
+      const systemInstruction = getBusinessConsultantSystemInstruction(companyDetails, projectType, country);
 
       // Convert messages to OpenRouter format (skip initial greeting)
       const chatMessages = messages.slice(1).map(m => ({
@@ -139,7 +117,7 @@ Beziehe dich konkret auf die Namen der Firmen und deren spezifische Situationen.
       setMessages(prev => [...prev, { role: 'model', text: responseText }]);
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'model', text: 'Entschuldigung, es gab einen Fehler bei der Verarbeitung Ihrer Anfrage.' }]);
+      setMessages(prev => [...prev, { role: 'model', text: 'Sorry, there was an error processing your request.' }]);
     } finally {
       setIsThinking(false);
     }
@@ -156,7 +134,7 @@ Beziehe dich konkret auf die Namen der Firmen und deren spezifische Situationen.
       <div className="glass-dark p-4 text-white flex justify-between items-center flex-shrink-0 rounded-t-3xl border-b border-white/20 bg-gradient-to-r from-emerald-700/80 to-emerald-600/80 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></div>
-          <h3 className="font-semibold text-sm">Business-Berater</h3>
+          <h3 className="font-semibold text-sm">Business Consultant</h3>
         </div>
         <button onClick={onClose} className="text-emerald-200 hover:text-white">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -201,7 +179,7 @@ Beziehe dich konkret auf die Namen der Firmen und deren spezifische Situationen.
         {isThinking && (
           <div className="flex justify-start">
             <div className="glass border border-white/30 text-slate-700 rounded-xl p-3 text-xs italic backdrop-blur-xl">
-              Analysiere Struktur und Geschäftsmöglichkeiten...
+              Analyzing structure and business opportunities...
             </div>
           </div>
         )}
@@ -214,7 +192,7 @@ Beziehe dich konkret auf die Namen der Firmen und deren spezifische Situationen.
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Fragen Sie nach Geschäftsmöglichkeiten, Synergien, Strategien..."
+            placeholder="Ask about business opportunities, synergies, strategies..."
             className="w-full pl-4 pr-10 py-3 glass border border-white/30 rounded-xl text-sm text-slate-900 focus:ring-2 focus:ring-white/50 outline-none backdrop-blur-xl"
           />
           <button 

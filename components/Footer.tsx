@@ -9,46 +9,46 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-bold text-slate-900 mb-4">OrgPhant</h3>
             <p className="text-slate-700 text-sm">
-              Professionelle Firmenstruktur-Visualisierung
+              Professional company structure visualization
             </p>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 mb-3">Produkt</h4>
+            <h4 className="font-semibold text-slate-900 mb-3">Product</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/features" className="text-slate-700 hover:text-slate-900">
-                  Funktionen
+                  Features
                 </Link>
               </li>
               <li>
                 <Link to="/pricing" className="text-slate-700 hover:text-slate-900">
-                  Preise
+                  Pricing
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 mb-3">Rechtliches</h4>
+            <h4 className="font-semibold text-slate-900 mb-3">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/legal/imprint" className="text-slate-700 hover:text-slate-900">
-                  Impressum
+                  Imprint
                 </Link>
               </li>
               <li>
                 <Link to="/legal/privacy" className="text-slate-700 hover:text-slate-900">
-                  Datenschutz
+                  Privacy
                 </Link>
               </li>
               <li>
                 <Link to="/legal/terms" className="text-slate-700 hover:text-slate-900">
-                  AGB
+                  Terms
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-slate-900 mb-3">Kontakt</h4>
+            <h4 className="font-semibold text-slate-900 mb-3">Contact</h4>
             <p className="text-slate-700 text-sm">
               <a
                 href="mailto:nadine.wischmeier@quantophant.io"
@@ -60,7 +60,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-white/20 text-center text-sm text-slate-700">
-          <p>&copy; {new Date().getFullYear()} Quantophant GmbH. Alle Rechte vorbehalten.</p>
+          <p>&copy; {new Date().getFullYear()} Quantophant GmbH. All rights reserved.</p>
         </div>
       </div>
     </footer>

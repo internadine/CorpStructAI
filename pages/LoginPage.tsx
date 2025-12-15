@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
       await loginWithEmail(email, password);
       navigate("/app");
     } catch (err: any) {
-      setError(err.message || "Anmeldung fehlgeschlagen");
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -41,7 +41,7 @@ const LoginPage: React.FC = () => {
       await loginWithGoogle();
       navigate("/app");
     } catch (err: any) {
-      setError(err.message || "Google-Anmeldung fehlgeschlagen");
+      setError(err.message || "Google login failed");
     } finally {
       setLoading(false);
     }
@@ -57,10 +57,10 @@ const LoginPage: React.FC = () => {
             className="h-20 w-auto mx-auto mb-4 drop-shadow-2xl"
           />
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Anmelden
+            Login
           </h1>
           <p className="text-slate-700">
-            Melden Sie sich an, um auf Ihre Projekte zuzugreifen
+            Sign in to access your projects
           </p>
         </div>
 
@@ -73,7 +73,7 @@ const LoginPage: React.FC = () => {
         <form onSubmit={handleEmailLogin} className="space-y-4 mb-6">
           <div>
             <label htmlFor="email" className="block text-sm font-semibold text-slate-800 mb-2">
-              E-Mail
+              Email
             </label>
             <input
               id="email"
@@ -82,13 +82,13 @@ const LoginPage: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full glass px-4 py-3 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="ihre@email.de"
+              placeholder="your@email.com"
             />
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-semibold text-slate-800 mb-2">
-              Passwort
+              Password
             </label>
             <input
               id="password"
@@ -106,7 +106,7 @@ const LoginPage: React.FC = () => {
             disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            {loading ? "Anmeldung..." : "Anmelden"}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -115,7 +115,7 @@ const LoginPage: React.FC = () => {
             <div className="w-full border-t border-white/30"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 glass text-slate-700">oder</span>
+            <span className="px-2 glass text-slate-700">or</span>
           </div>
         </div>
 
@@ -124,19 +124,19 @@ const LoginPage: React.FC = () => {
           disabled={loading}
           className="w-full glass hover:bg-white/30 border border-white/20 text-slate-900 font-semibold py-3 px-6 rounded-lg transition-colors mb-4"
         >
-          Mit Google anmelden
+          Sign in with Google
         </button>
 
         <p className="text-center text-slate-700">
-          Noch kein Konto?{" "}
+          Don't have an account?{" "}
           <Link to="/signup" className="text-blue-600 hover:underline font-semibold">
-            Jetzt registrieren
+            Sign up now
           </Link>
         </p>
 
         <div className="mt-6 text-center">
           <Link to="/" className="text-sm text-slate-600 hover:text-slate-800">
-            ← Zurück zur Startseite
+            ← Back to homepage
           </Link>
         </div>
       </div>

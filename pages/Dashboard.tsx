@@ -8,7 +8,7 @@ import BusinessConsultantChat from '../components/BusinessConsultantChat';
 import ProjectManager from '../components/ProjectManager';
 import { SubscriptionGate } from '../components/SubscriptionGate';
 import { Link } from 'react-router-dom';
-import { Company, Person, StructureData, CompanyType, Project } from '../types';
+import { Company, Person, StructureData, CompanyType, Project, ProjectType } from '../types';
 import { getProjects, saveProjectToStorage, deleteProject } from '../services/projectService';
 import { CompanyType as CT } from '../types';
 
@@ -29,9 +29,10 @@ const INITIAL_DATA: StructureData = {
 
 const INITIAL_PROJECT: Project = {
   id: 'default',
-  name: 'Beispiel Struktur',
+  name: 'Example Structure',
   lastModified: Date.now(),
-  data: INITIAL_DATA
+  data: INITIAL_DATA,
+  projectType: ProjectType.CORPORATE_STRUCTURE
 };
 
 const Dashboard: React.FC = () => {
@@ -58,7 +59,7 @@ const Dashboard: React.FC = () => {
           setActiveProjectId(INITIAL_PROJECT.id);
         }
       } catch (e) {
-        console.error("Fehler beim Laden der Projekte", e);
+        console.error("Error loading projects", e);
         setProjects([INITIAL_PROJECT]);
         setActiveProjectId(INITIAL_PROJECT.id);
       } finally {
@@ -72,17 +73,27 @@ const Dashboard: React.FC = () => {
   // Auto-Save Effect
   useEffect(() => {
     if (!loading && projects.length > 0 && activeProjectId) {
-      const activeProject = projects.find(p => p.id === activeProjectId);
-      if (activeProject) {
-        saveProjectToStorage(activeProject).catch(e => {
-          console.error("Fehler beim Speichern:", e);
+      const projectToSave = projects.find(p => p.id === activeProjectId);
+      if (projectToSave) {
+        // Ensure projectType is set before saving (for backward compatibility)
+        const projectWithDefaults: Project = {
+          ...projectToSave,
+          projectType: projectToSave.projectType || ProjectType.CORPORATE_STRUCTURE
+        };
+        saveProjectToStorage(projectWithDefaults).catch(e => {
+          console.error("Error saving:", e);
         });
       }
     }
   }, [projects, activeProjectId, loading]);
 
   // Derived Active Data
-  const activeProject = projects.find(p => p.id === activeProjectId) || projects[0] || INITIAL_PROJECT;
+  const activeProjectRaw = projects.find(p => p.id === activeProjectId) || projects[0] || INITIAL_PROJECT;
+  // Ensure projectType is always set (for backward compatibility with old data)
+  const activeProject: Project = {
+    ...activeProjectRaw,
+    projectType: activeProjectRaw.projectType || ProjectType.CORPORATE_STRUCTURE
+  };
   const data = activeProject.data;
 
   // -- Data Modification Helpers --
@@ -177,12 +188,14 @@ const Dashboard: React.FC = () => {
 
   // -- Project Management Handlers --
 
-  const handleCreateProject = (name: string) => {
+  const handleCreateProject = (name: string, projectType?: ProjectType, country?: string) => {
     const newProject: Project = {
       id: crypto.randomUUID(),
       name: name,
       lastModified: Date.now(),
-      data: { companies: [], people: [] }
+      data: { companies: [], people: [] },
+      projectType: projectType || ProjectType.CORPORATE_STRUCTURE,
+      country: country
     };
     setProjects(prev => [...prev, newProject]);
     setActiveProjectId(newProject.id);
@@ -231,7 +244,9 @@ const Dashboard: React.FC = () => {
       data: {
         companies: newCompanies,
         people: newPeople
-      }
+      },
+      projectType: original.projectType || ProjectType.CORPORATE_STRUCTURE,
+      country: original.country
     };
     setProjects(prev => [...prev, copy]);
   };
@@ -241,7 +256,7 @@ const Dashboard: React.FC = () => {
       alert("Das letzte Projekt kann nicht gelöscht werden.");
       return;
     }
-    if (!window.confirm("Projekt wirklich löschen?")) return;
+    if (!window.confirm("Really delete project?")) return;
     
     try {
       await deleteProject(id);
@@ -251,8 +266,8 @@ const Dashboard: React.FC = () => {
         setActiveProjectId(newProjects[0].id);
       }
     } catch (e) {
-      console.error("Fehler beim Löschen:", e);
-      alert("Fehler beim Löschen des Projekts");
+      console.error("Error deleting:", e);
+      alert("Error deleting project");
     }
   };
 
@@ -300,7 +315,7 @@ const Dashboard: React.FC = () => {
           throw new Error("Ungültiges JSON-Format");
         }
       } catch (err) {
-        alert('Fehler beim Importieren: ' + err);
+        alert('Error importing: ' + err);
       }
     };
     reader.readAsText(file);
@@ -416,8 +431,8 @@ const Dashboard: React.FC = () => {
 
       pdf.save(`${activeProject.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (error) {
-      console.error('PDF Export Fehler:', error);
-      alert('Fehler beim Erstellen der PDF: ' + error);
+      console.error('PDF Export Error:', error);
+      alert('Error creating PDF: ' + error);
     }
   };
 
@@ -432,28 +447,31 @@ const Dashboard: React.FC = () => {
   return (
     <div className="flex h-screen w-full font-sans">
       {/* Sidebar Panel */}
-      <div className="flex flex-col glass-strong h-full relative z-20 w-96 shrink-0 shadow-2xl">
-        <Sidebar 
-          currentProjectName={activeProject.name}
-          companies={data.companies} 
-          people={data.people}
-          onAddCompany={handleAddCompany}
-          onSelectCompany={setEditingCompany}
-          onClear={handleClear}
-          onToggleChat={() => setIsChatOpen(!isChatOpen)}
-          onToggleBusinessChat={() => setIsBusinessChatOpen(!isBusinessChatOpen)}
-          onExportJSON={handleExportJSON}
-          onExportPDF={handleExportPDF}
-          onImportJSON={handleImportJSON}
-          onOpenProjectManager={() => setIsProjectManagerOpen(true)}
-          onRenameProject={handleRenameProject}
-        />
-        <div className="p-4 border-t border-white/20">
-           <AIAssistant 
-             currentData={data} 
-             onStructureGenerated={handleStructureGenerated}
-             isApiKeyAvailable={true}
-           />
+      <div className="flex flex-col glass-strong h-full relative z-20 w-96 shrink-0 shadow-2xl overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <Sidebar 
+            currentProjectName={activeProject.name}
+            companies={data.companies} 
+            people={data.people}
+            onAddCompany={handleAddCompany}
+            onSelectCompany={setEditingCompany}
+            onClear={handleClear}
+            onToggleChat={() => setIsChatOpen(!isChatOpen)}
+            onToggleBusinessChat={() => setIsBusinessChatOpen(!isBusinessChatOpen)}
+            onExportJSON={handleExportJSON}
+            onExportPDF={handleExportPDF}
+            onImportJSON={handleImportJSON}
+            onOpenProjectManager={() => setIsProjectManagerOpen(true)}
+            onRenameProject={handleRenameProject}
+          />
+          <div className="p-4 border-t border-white/20">
+             <AIAssistant 
+               currentData={data} 
+               onStructureGenerated={handleStructureGenerated}
+               isApiKeyAvailable={true}
+               projectType={activeProject.projectType}
+             />
+          </div>
         </div>
       </div>
 
@@ -474,6 +492,7 @@ const Dashboard: React.FC = () => {
           allCompanies={data.companies}
           people={data.people.filter(p => p.companyId === editingCompany.id)}
           onSave={handleSaveCompany}
+          projectType={activeProject.projectType}
           onDelete={handleDeleteCompany}
           onClose={() => setEditingCompany(null)}
         />
@@ -510,6 +529,7 @@ const Dashboard: React.FC = () => {
             structureData={data}
             isOpen={isChatOpen}
             onClose={() => setIsChatOpen(false)}
+            country={activeProject.country}
           />
         </SubscriptionGate>
       )}
@@ -541,10 +561,12 @@ const Dashboard: React.FC = () => {
             </div>
           }
         >
-          <BusinessConsultantChat 
+          <BusinessConsultantChat
             structureData={data}
             isOpen={isBusinessChatOpen}
             onClose={() => setIsBusinessChatOpen(false)}
+            projectType={activeProject.projectType}
+            country={activeProject.country}
           />
         </SubscriptionGate>
       )}

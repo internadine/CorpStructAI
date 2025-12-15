@@ -41,7 +41,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick, onN
     // We map all nodes with NO parents to virtual-root.
     
     const hierarchyData = [
-      { id: rootId, name: 'Struktur', type: 'Root', parentIds: [] } as any,
+      { id: rootId, name: 'Structure', type: 'Root', parentIds: [] } as any,
       ...companies.map(c => ({
         ...c,
         // Primary parent for Tree Layout
@@ -609,15 +609,15 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick, onN
       <div className="absolute bottom-4 left-4 glass border border-white/30 px-3 py-2 rounded-xl text-xs text-slate-900 shadow-lg pointer-events-none backdrop-blur-xl font-medium">
         <div className="flex items-center gap-2 mb-1">
             <span className="w-3 h-0.5 bg-slate-600"></span>
-            <span className="font-semibold">Hauptbeteiligung</span>
+            <span className="font-semibold">Primary Holding</span>
         </div>
         <div className="flex items-center gap-2">
             <span className="w-3 h-0.5 bg-amber-500 border-t border-dashed border-amber-500"></span>
-            <span className="font-semibold">Nebenbeteiligung</span>
+            <span className="font-semibold">Minority Holding</span>
         </div>
       </div>
       <div className="absolute bottom-4 right-4 glass border border-white/30 px-3 py-1 rounded-xl text-xs text-slate-900 shadow-lg pointer-events-none backdrop-blur-xl font-medium">
-        Scrollen zum Zoomen • Ziehen zum Bewegen • Knoten verschieben
+        Scroll to Zoom • Drag to Move • Move Nodes
       </div>
     </div>
   );

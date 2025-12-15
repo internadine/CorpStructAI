@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { generateStructureFromText } from '../services/openrouterService';
-import { StructureData } from '../types';
+import { StructureData, ProjectType } from '../types';
 
 interface AIAssistantProps {
   currentData: StructureData;
   onStructureGenerated: (data: StructureData) => void;
   isApiKeyAvailable: boolean;
+  projectType?: ProjectType;
 }
 
-const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGenerated, isApiKeyAvailable }) => {
+const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGenerated, isApiKeyAvailable, projectType }) => {
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,11 +22,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
     setError(null);
 
     try {
-      const newData = await generateStructureFromText(prompt, currentData);
+      const newData = await generateStructureFromText(prompt, currentData, projectType);
       onStructureGenerated(newData);
       setPrompt('');
     } catch (err) {
-      setError("Fehler beim Generieren der Struktur. Bitte versuchen Sie es erneut.");
+      setError("Error generating structure. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -34,8 +35,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
   if (!isApiKeyAvailable) {
     return (
       <div className="glass border border-amber-300/50 rounded-xl p-4 mb-6 backdrop-blur-xl">
-        <h3 className="text-amber-800 font-semibold text-sm mb-1">KI-Funktionen deaktiviert</h3>
-        <p className="text-amber-700 text-xs">API_KEY Umgebungsvariable fehlt.</p>
+        <h3 className="text-amber-800 font-semibold text-sm mb-1">AI features disabled</h3>
+        <p className="text-amber-700 text-xs">API_KEY environment variable missing.</p>
       </div>
     );
   }
@@ -48,11 +49,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
-        <h2 className="font-semibold text-slate-800">KI Architekt</h2>
+        <h2 className="font-semibold text-slate-800">AI Architect</h2>
       </div>
       
       <p className="text-xs text-slate-800 mb-3 leading-relaxed">
-        Beschreiben Sie Ihre Firmenstruktur. Z.B. "Erstelle eine Holding Alpha, die Beta GmbH besitzt. Max Mustermann ist Geschäftsführer der Alpha."
+        Describe your company structure. E.g. "Create a holding Alpha that owns Beta GmbH. Max Mustermann is managing director of Alpha."
       </p>
 
       <form onSubmit={handleSubmit}>
@@ -60,7 +61,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Struktur beschreiben..."
+            placeholder="Describe structure..."
             className="w-full text-sm p-3 pr-10 glass border border-white/30 rounded-xl focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400/50 outline-none resize-none h-24 text-slate-900 backdrop-blur-xl"
           />
         </div>
@@ -82,10 +83,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ currentData, onStructureGener
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Denkt nach...
+              Thinking...
             </>
           ) : (
-            'Struktur Generieren'
+            'Generate Structure'
           )}
         </button>
       </form>

@@ -75,9 +75,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full flex flex-col">
       {/* Updated Header with Project Context */}
-      <div className="p-4 border-b border-white/20 flex flex-col gap-3">
+      <div className="p-4 border-b border-white/20 flex flex-col gap-3 flex-shrink-0">
         {/* Logo */}
         <div className="flex items-center justify-center mb-4 pb-4 border-b border-white/20">
           <img 
@@ -88,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <div className="flex justify-between items-start">
           <div className="flex-1 mr-2">
-            <p className="text-[10px] uppercase font-bold text-slate-700 mb-0.5 tracking-wider">Aktuelles Projekt</p>
+            <p className="text-[10px] uppercase font-bold text-slate-700 mb-0.5 tracking-wider">Current Project</p>
             {isEditingName ? (
               <form onSubmit={handleNameSubmit}>
                 <input 
@@ -103,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <h1 
                 onClick={() => setIsEditingName(true)}
                 className="font-bold text-base text-slate-800 truncate cursor-text hover:bg-white/20 hover:text-blue-600 rounded-lg px-2 py-1 -ml-2 transition-all"
-                title="Klicken zum Umbenennen"
+                title="Click to rename"
               >
                 {currentProjectName}
               </h1>
@@ -112,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <button 
             onClick={onOpenProjectManager}
             className="p-2 glass border border-white/30 text-slate-700 rounded-lg hover:bg-white/30 hover:text-indigo-600 transition-all shadow-sm"
-            title="Projekte verwalten"
+            title="Manage projects"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -121,12 +121,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div className="p-4 space-y-2">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Gesellschaften</h2>
+          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Companies</h2>
           <div className="flex gap-2 items-center">
             <button onClick={onClear} className="text-[10px] text-red-500 hover:text-red-700 hover:underline font-medium">
-              Leeren
+              Clear
             </button>
             <span className="text-xs glass border border-white/20 px-2 py-0.5 rounded-full text-slate-800 font-semibold">{companies.length}</span>
           </div>
@@ -134,8 +134,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {companies.length === 0 ? (
           <div className="text-center py-8 border-2 border-dashed border-white/30 rounded-xl glass">
-            <p className="text-slate-700 text-sm font-medium">Noch keine Firmen.</p>
-            <p className="text-slate-600 text-xs mt-1">Nutzen Sie die KI oder fügen Sie manuell hinzu.</p>
+            <p className="text-slate-700 text-sm font-medium">No companies yet.</p>
+            <p className="text-slate-600 text-xs mt-1">Use AI or add manually.</p>
           </div>
         ) : (
           companies.map(c => (
@@ -159,13 +159,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      <div className="p-4 border-t border-white/20 space-y-3">
+      <div className="p-4 border-t border-white/20 space-y-3 flex-shrink-0">
         <button 
           onClick={onAddCompany}
           className="w-full py-2.5 glass border border-white/30 hover:border-white/50 text-slate-800 rounded-xl text-sm font-medium shadow-sm transition-all hover:bg-white/30 flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Firma manuell hinzufügen
+          Add Company Manually
         </button>
 
         <div className="grid grid-cols-1 gap-2">
@@ -174,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             className="w-full py-2.5 glass border border-indigo-300/50 hover:border-indigo-400/70 text-indigo-800 rounded-xl text-sm font-medium shadow-sm transition-all hover:bg-indigo-500/20 flex items-center justify-center gap-2 backdrop-blur-xl"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-            Steuer- & Rechts-Chat
+            Tax & Legal Chat
           </button>
           
           <button 
@@ -182,7 +182,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             className="w-full py-2.5 glass border border-emerald-300/50 hover:border-emerald-400/70 text-emerald-800 rounded-xl text-sm font-medium shadow-sm transition-all hover:bg-emerald-500/20 flex items-center justify-center gap-2 backdrop-blur-xl"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-            Business-Berater
+            Business Consultant
           </button>
         </div>
 
@@ -222,10 +222,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </p>
                 <Link
                   to="/settings"
-                  className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
-                  title="Einstellungen"
+                  className="text-blue-600 hover:text-blue-700 transition-colors"
+                  title="Settings"
                 >
-                  ⚙️
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
                 </Link>
               </div>
               {subscription && (
@@ -236,7 +239,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       ? 'text-slate-700' 
                       : 'text-blue-600'
                   }`}>
-                    {subscription.plan === 'free' ? 'Kostenlos' : 'Consulting'}
+                    {subscription.plan === 'free' ? 'Free' : 'Consulting'}
                   </span>
                 </div>
               )}
@@ -245,7 +248,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                   to="/pricing"
                   className="block w-full mt-2 text-center text-xs bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-3 rounded transition-colors"
                 >
-                  Upgraden
+                  Upgrade
                 </Link>
               )}
             </div>

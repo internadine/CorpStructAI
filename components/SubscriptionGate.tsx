@@ -52,13 +52,13 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({
           Premium Feature
         </h2>
         <p className="text-slate-700 mb-6">
-          Diese Funktion ist nur für Abonnenten verfügbar. Bitte upgraden Sie Ihren Plan, um auf die AI-Beratung zuzugreifen.
+          This feature is only available for subscribers. Please upgrade your plan to access AI consulting.
         </p>
         <button
           onClick={() => navigate("/pricing")}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
         >
-          Jetzt upgraden
+          Upgrade Now
         </button>
       </div>
     );

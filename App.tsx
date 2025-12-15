@@ -1,6 +1,6 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./components/Auth/AuthProvider";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "./components/Auth/AuthProvider";
 import { ProtectedRoute } from "./components/Auth/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -17,45 +17,62 @@ import ImprintPage from "./pages/Legal/ImprintPage";
 import PrivacyPage from "./pages/Legal/PrivacyPage";
 import TermsPage from "./pages/Legal/TermsPage";
 
+const AppContent: React.FC = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const isLoggedIn = !!user;
+  
+  // Protected routes where we hide the navbar when logged in
+  const protectedRoutes = ['/app', '/settings'];
+  const isOnProtectedRoute = protectedRoutes.includes(location.pathname);
+  
+  // Show navbar if: not logged in OR (logged in but not on protected routes)
+  const shouldShowNavbar = !isLoggedIn || (isLoggedIn && !isOnProtectedRoute);
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {shouldShowNavbar && <Navbar />}
+      <main className="flex-1">
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/legal/imprint" element={<ImprintPage />} />
+          <Route path="/legal/privacy" element={<PrivacyPage />} />
+          <Route path="/legal/terms" element={<TermsPage />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/app"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
+      {shouldShowNavbar && <Footer />}
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/features" element={<FeaturesPage />} />
-              <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/legal/imprint" element={<ImprintPage />} />
-              <Route path="/legal/privacy" element={<PrivacyPage />} />
-              <Route path="/legal/terms" element={<TermsPage />} />
-
-              {/* Protected Routes */}
-              <Route
-                path="/app"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+        <AppContent />
       </AuthProvider>
     </Router>
   );

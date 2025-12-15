@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Company, CompanyType, Person, CompanyResource } from '../types';
+import { Company, CompanyType, Person, CompanyResource, ProjectType } from '../types';
 
 interface CompanyEditorProps {
   company: Company;
@@ -8,9 +8,105 @@ interface CompanyEditorProps {
   onSave: (company: Company, people: Person[]) => void;
   onDelete: (companyId: string) => void;
   onClose: () => void;
+  projectType?: ProjectType;
 }
 
-const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, people, onSave, onDelete, onClose }) => {
+const getLabelsForProjectType = (projectType?: ProjectType) => {
+  const labels = {
+    entityName: 'Company Name',
+    entityType: 'Legal Form',
+    personLabel: 'Key Personnel',
+    personName: 'Name',
+    personRole: 'Role (e.g. CEO)',
+    businessPurpose: 'Business Purpose',
+    resources: 'Company Resources (Buildings, etc.)',
+    parentLabel: 'Parent Companies (Holdings)'
+  };
+
+  if (!projectType || projectType === ProjectType.CORPORATE_STRUCTURE) {
+    return labels;
+  }
+
+  const labelMap: Record<ProjectType, Partial<typeof labels>> = {
+    [ProjectType.TEAM_STRUCTURE]: {
+      entityName: 'Team Name',
+      entityType: 'Team Type',
+      personLabel: 'Team Members',
+      personName: 'Name',
+      personRole: 'Role (e.g. Team Lead)',
+      businessPurpose: 'Team Purpose/Goals',
+      resources: 'Team Resources',
+      parentLabel: 'Parent Teams/Departments'
+    },
+    [ProjectType.M_A_SCENARIOS]: {
+      entityName: 'Company Name',
+      entityType: 'Legal Form',
+      personLabel: 'Key Personnel',
+      businessPurpose: 'Business Purpose',
+      parentLabel: 'Acquirer/Parent Companies'
+    },
+    [ProjectType.STARTUP_EQUITY]: {
+      entityName: 'Company Name',
+      personLabel: 'Founders/Investors',
+      personRole: 'Role (e.g. Founder, Investor)',
+      businessPurpose: 'Business Purpose',
+      parentLabel: 'Ownership'
+    },
+    [ProjectType.FAMILY_BUSINESS]: {
+      entityName: 'Company Name',
+      personLabel: 'Family Members',
+      personRole: 'Role (e.g. MD, Successor)',
+      businessPurpose: 'Business Purpose',
+      parentLabel: 'Parent Structures'
+    },
+    [ProjectType.COMPLIANCE_GOVERNANCE]: {
+      entityName: 'Organizational Unit',
+      personLabel: 'Key Personnel',
+      personRole: 'Role (e.g. Board, Compliance Officer)',
+      businessPurpose: 'Purpose/Function',
+      parentLabel: 'Parent Units'
+    },
+    [ProjectType.INTERNATIONAL_STRUCTURE]: {
+      entityName: 'Company Name',
+      personLabel: 'Key Personnel',
+      businessPurpose: 'Business Purpose',
+      parentLabel: 'Parent Companies'
+    },
+    [ProjectType.PARTNERSHIP_JV]: {
+      entityName: 'Partnership/JV Name',
+      personLabel: 'Partners',
+      personRole: 'Role (e.g. Partner, JV Manager)',
+      businessPurpose: 'Partnership Purpose',
+      parentLabel: 'Participating Partners'
+    },
+    [ProjectType.INVESTMENT_FUND]: {
+      entityName: 'Fund/Company Name',
+      personLabel: 'Key Personnel',
+      personRole: 'Role (e.g. GP, LP, Portfolio Manager)',
+      businessPurpose: 'Investment Strategy',
+      parentLabel: 'Parent Structures'
+    },
+    [ProjectType.NONPROFIT]: {
+      entityName: 'Organization Name',
+      personLabel: 'Key Personnel',
+      personRole: 'Role (e.g. Board, Program Director)',
+      businessPurpose: 'Organization Purpose',
+      parentLabel: 'Parent Organizations'
+    },
+    [ProjectType.REAL_ESTATE]: {
+      entityName: 'Real Estate Company',
+      personLabel: 'Key Personnel',
+      personRole: 'Role (e.g. Manager, Asset Manager)',
+      businessPurpose: 'Real Estate Portfolio',
+      parentLabel: 'Parent Structures'
+    },
+    [ProjectType.CORPORATE_STRUCTURE]: labels
+  };
+
+  return { ...labels, ...(labelMap[projectType] || {}) };
+};
+
+const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, people, onSave, onDelete, onClose, projectType }) => {
   const [formData, setFormData] = useState<Company>({ ...company });
   const [localPeople, setLocalPeople] = useState<Person[]>(people);
   const [newPersonName, setNewPersonName] = useState('');
@@ -18,6 +114,8 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
   const [newResourceName, setNewResourceName] = useState('');
   const [newResourceType, setNewResourceType] = useState('');
   const [newResourceValue, setNewResourceValue] = useState('');
+  
+  const labels = getLabelsForProjectType(projectType);
 
   useEffect(() => {
     setFormData({ ...company });
@@ -117,7 +215,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-md p-4">
       <div className="glass-strong rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/40">
         <div className="p-5 border-b border-white/20 flex justify-between items-center">
-          <h2 className="font-bold text-slate-800 text-lg">Einheit bearbeiten</h2>
+          <h2 className="font-bold text-slate-800 text-lg">Edit Company</h2>
           <button onClick={onClose} className="text-slate-600 hover:text-slate-800">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -129,7 +227,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
           {/* General Info */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Firmenname</label>
+              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">{labels.entityName}</label>
               <input 
                 type="text" 
                 value={formData.name}
@@ -139,7 +237,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
             </div>
             
             <div>
-              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Rechtsform</label>
+              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Legal Form</label>
               <select 
                 value={formData.type}
                 onChange={e => setFormData({ ...formData, type: e.target.value as CompanyType })}
@@ -150,7 +248,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Knotenfarbe (optional)</label>
+              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Node Color (optional)</label>
               <div className="flex gap-2 items-center">
                 <input 
                   type="color" 
@@ -174,14 +272,14 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
                   </button>
                 )}
               </div>
-              <p className="text-[10px] text-slate-700 mt-1">Hex-Farbe für die Knotendarstellung</p>
+              <p className="text-[10px] text-slate-700 mt-1">Hex color for node display</p>
             </div>
               
             <div>
-              <label className="block text-xs font-semibold text-slate-800 uppercase mb-2">Muttergesellschaften (Holdings)</label>
+              <label className="block text-xs font-semibold text-slate-800 uppercase mb-2">{labels.parentLabel}</label>
               <div className="glass border border-white/30 rounded-xl p-3 max-h-60 overflow-y-auto space-y-3 backdrop-blur-xl">
                 {allCompanies.filter(c => c.id !== formData.id).length === 0 && (
-                  <p className="text-xs text-slate-700">Keine anderen Firmen verfügbar.</p>
+                  <p className="text-xs text-slate-700">No other companies available.</p>
                 )}
                 {allCompanies
                   .filter(c => c.id !== formData.id) // Prevent self-parenting
@@ -214,7 +312,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
                         {isSelected && (
                           <div className="px-2 pb-2 pt-1 border-t border-blue-200">
                             <label className="block text-[10px] font-medium text-slate-600 mb-1">
-                              Beteiligungsverhältnis (%)
+                              Ownership Percentage (%)
                             </label>
                             <div className="flex items-center gap-2">
                               <input
@@ -241,7 +339,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
                     );
                   })}
               </div>
-              <p className="text-[10px] text-slate-700 mt-1">Mehrfachauswahl möglich. Geben Sie die Beteiligungsverhältnisse in Prozent ein.</p>
+              <p className="text-[10px] text-slate-700 mt-1">Multiple selection possible. Enter ownership percentages.</p>
             </div>
           </div>
 
@@ -250,17 +348,17 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
           {/* Business Details */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Unternehmensgegenstand</label>
+              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">{labels.businessPurpose}</label>
               <textarea 
                 value={formData.businessJustification || ''}
                 onChange={e => setFormData({ ...formData, businessJustification: e.target.value })}
-                placeholder="Beschreibung des Geschäftszwecks..."
+                placeholder="Description of business purpose..."
                 className="w-full p-2.5 glass border border-white/30 text-slate-900 rounded-xl text-sm focus:ring-2 focus:ring-blue-400/50 outline-none resize-none h-24 backdrop-blur-xl"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Finanzielle Ressourcen (EUR)</label>
+              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Financial Resources (EUR)</label>
               <input 
                 type="number" 
                 value={formData.financialResources || ''}
@@ -277,7 +375,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
 
           {/* Company Resources Management */}
           <div>
-            <label className="block text-xs font-semibold text-slate-800 uppercase mb-3">Unternehmensressourcen (Gebäude, etc.)</label>
+            <label className="block text-xs font-semibold text-slate-800 uppercase mb-3">{labels.resources}</label>
             
             <div className="space-y-2 mb-3">
               {(formData.companyResources || []).map(r => (
@@ -300,19 +398,19 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
                   </button>
                 </div>
               ))}
-              {(formData.companyResources || []).length === 0 && <p className="text-sm text-slate-600 italic">Keine Ressourcen zugewiesen.</p>}
+              {(formData.companyResources || []).length === 0 && <p className="text-sm text-slate-600 italic">No resources assigned.</p>}
             </div>
 
             <div className="space-y-2">
               <div className="flex gap-2">
                 <input 
-                  placeholder="Name (z.B. Gebäude Berlin)" 
+                  placeholder="Name (e.g. Building Berlin)" 
                   value={newResourceName}
                   onChange={e => setNewResourceName(e.target.value)}
                   className="flex-1 p-2 glass border border-white/30 text-slate-900 rounded-lg text-sm outline-none focus:border-white/50 focus:ring-2 focus:ring-white/30 backdrop-blur-xl"
                 />
                 <input 
-                  placeholder="Typ (z.B. Gebäude)" 
+                  placeholder="Type (e.g. Building)" 
                   value={newResourceType}
                   onChange={e => setNewResourceType(e.target.value)}
                   className="w-32 p-2 bg-white text-slate-900 border border-slate-300 rounded text-sm outline-none focus:border-blue-500"
@@ -321,7 +419,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
               <div className="flex gap-2">
                 <input 
                   type="number"
-                  placeholder="Wert (EUR, optional)" 
+                  placeholder="Value (EUR, optional)" 
                   value={newResourceValue}
                   onChange={e => setNewResourceValue(e.target.value)}
                   min="0"
@@ -343,7 +441,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
 
           {/* People Management */}
           <div>
-            <label className="block text-xs font-semibold text-slate-800 uppercase mb-3">Schlüsselpersonal</label>
+            <label className="block text-xs font-semibold text-slate-800 uppercase mb-3">{labels.personLabel}</label>
             
             <div className="space-y-2 mb-3">
               {localPeople.map(p => (
@@ -358,18 +456,18 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
                   </button>
                 </div>
               ))}
-              {localPeople.length === 0 && <p className="text-sm text-slate-600 italic">Keine Personen zugewiesen.</p>}
+              {localPeople.length === 0 && <p className="text-sm text-slate-600 italic">No people assigned.</p>}
             </div>
 
             <div className="flex gap-2">
               <input 
-                placeholder="Name" 
+                placeholder={labels.personName} 
                 value={newPersonName}
                 onChange={e => setNewPersonName(e.target.value)}
                 className="flex-1 p-2 glass border border-white/30 text-slate-900 rounded-lg text-sm outline-none focus:border-white/50 focus:ring-2 focus:ring-white/30 backdrop-blur-xl"
               />
               <input 
-                placeholder="Rolle (z.B. CEO)" 
+                placeholder={labels.personRole} 
                 value={newPersonRole}
                 onChange={e => setNewPersonRole(e.target.value)}
                 className="w-32 p-2 bg-white text-slate-900 border border-slate-300 rounded text-sm outline-none focus:border-blue-500"
@@ -390,20 +488,20 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
             onClick={() => onDelete(formData.id)}
             className="px-4 py-2 text-red-600 text-sm font-medium hover:bg-red-50 rounded transition-colors"
           >
-            Löschen
+            Delete
           </button>
           <div className="flex gap-3">
             <button 
               onClick={onClose}
               className="px-4 py-2 text-slate-600 text-sm font-medium hover:bg-slate-200 rounded transition-colors"
             >
-              Abbrechen
+              Cancel
             </button>
             <button 
               onClick={handleSave}
               className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded shadow-sm hover:bg-blue-700 transition-colors"
             >
-              Speichern
+              Save
             </button>
           </div>
         </div>

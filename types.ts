@@ -12,6 +12,20 @@ export enum CompanyType {
   SONSTIGE = 'Sonstige'
 }
 
+export enum ProjectType {
+  CORPORATE_STRUCTURE = 'CORPORATE_STRUCTURE',
+  TEAM_STRUCTURE = 'TEAM_STRUCTURE',
+  M_A_SCENARIOS = 'M_A_SCENARIOS',
+  STARTUP_EQUITY = 'STARTUP_EQUITY',
+  FAMILY_BUSINESS = 'FAMILY_BUSINESS',
+  COMPLIANCE_GOVERNANCE = 'COMPLIANCE_GOVERNANCE',
+  INTERNATIONAL_STRUCTURE = 'INTERNATIONAL_STRUCTURE',
+  PARTNERSHIP_JV = 'PARTNERSHIP_JV',
+  INVESTMENT_FUND = 'INVESTMENT_FUND',
+  NONPROFIT = 'NONPROFIT',
+  REAL_ESTATE = 'REAL_ESTATE'
+}
+
 export interface Person {
   id: string;
   name: string;
@@ -51,6 +65,8 @@ export interface Project {
   name: string;
   lastModified: number;
   data: StructureData;
+  projectType?: ProjectType; // Optional for backward compatibility, defaults to CORPORATE_STRUCTURE
+  country?: string; // Country code (ISO 3166-1 alpha-2) for tax and legal consultancy context
 }
 
 export interface D3Node extends HierarchyPointNode<Company & { people: Person[] }> {

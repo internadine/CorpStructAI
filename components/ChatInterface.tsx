@@ -7,6 +7,7 @@ interface ChatInterfaceProps {
   structureData: StructureData;
   isOpen: boolean;
   onClose: () => void;
+  country?: string;
 }
 
 interface Message {
@@ -14,9 +15,9 @@ interface Message {
   text: string;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, onClose }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, onClose, country }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', text: 'Hallo! Ich bin Ihr Assistent für Steuer- und Rechtsfragen zu Ihrer Firmenstruktur. Wie kann ich helfen?' }
+    { role: 'model', text: 'Hello! I am your assistant for tax and legal questions about your company structure. How can I help?' }
   ]);
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
@@ -81,14 +82,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
     setIsThinking(true);
 
     try {
+      const countryContext = country 
+        ? `IMPORTANT: Provide tax and legal advice specifically for ${country}. Consider the local tax laws, legal framework, and regulatory requirements of ${country}.`
+        : 'IMPORTANT: Provide general tax and legal advice. If specific country context is needed, ask the user to specify the country.';
+      
       const systemInstruction = `
-Du bist ein erfahrener deutscher Wirtschaftsanwalt und Steuerberater.
-Dein Mandant zeigt dir folgende Firmenstruktur (JSON Format):
+You are an experienced business lawyer and tax advisor${country ? ` specializing in ${country} law and taxation` : ''}.
+Your client shows you the following company structure (JSON format):
 ${JSON.stringify(structureData)}
 
-Deine Aufgabe ist es, Fragen zu dieser Struktur zu beantworten, Risiken aufzuzeigen (z.B. verdeckte Gewinnausschüttung, Organschaft, Haftung) und Optimierungen vorzuschlagen.
-Antworte präzise, professionell, aber verständlich auf Deutsch.
-Beziehe dich konkret auf die Namen der Firmen und Personen in der Struktur.
+${countryContext}
+
+Your task is to answer questions about this structure, identify risks (e.g. hidden profit distribution, organizational integration, liability) and suggest optimizations.
+Answer precisely, professionally, but understandably in English.
+Refer specifically to the names of companies and people in the structure.
       `.trim();
 
       // Convert messages to OpenRouter format (skip initial greeting)
@@ -108,7 +115,7 @@ Beziehe dich konkret auf die Namen der Firmen und Personen in der Struktur.
       setMessages(prev => [...prev, { role: 'model', text: responseText }]);
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'model', text: 'Entschuldigung, es gab einen Fehler bei der Verarbeitung Ihrer Anfrage.' }]);
+      setMessages(prev => [...prev, { role: 'model', text: 'Sorry, there was an error processing your request.' }]);
     } finally {
       setIsThinking(false);
     }
@@ -125,7 +132,7 @@ Beziehe dich konkret auf die Namen der Firmen und Personen in der Struktur.
       <div className="glass-dark p-4 text-white flex justify-between items-center flex-shrink-0 rounded-t-3xl border-b border-white/20">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <h3 className="font-semibold text-sm">Steuer- & Rechts-Chat</h3>
+          <h3 className="font-semibold text-sm">Tax & Legal Chat</h3>
         </div>
         <button onClick={onClose} className="text-slate-400 hover:text-white">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -170,7 +177,7 @@ Beziehe dich konkret auf die Namen der Firmen und Personen in der Struktur.
         {isThinking && (
           <div className="flex justify-start">
             <div className="glass border border-white/30 text-slate-700 rounded-xl p-3 text-xs italic backdrop-blur-xl">
-              Analysiere Struktur...
+              Analyzing structure...
             </div>
           </div>
         )}
@@ -183,7 +190,7 @@ Beziehe dich konkret auf die Namen der Firmen und Personen in der Struktur.
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Stellen Sie eine rechtliche Frage..."
+            placeholder="Ask a legal question..."
             className="w-full pl-4 pr-10 py-3 glass border border-white/30 rounded-xl text-sm text-slate-900 focus:ring-2 focus:ring-white/50 outline-none backdrop-blur-xl"
           />
           <button 

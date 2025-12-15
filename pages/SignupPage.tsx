@@ -28,7 +28,7 @@ const SignupPage: React.FC = () => {
       await signupWithEmail(email, password, displayName || undefined);
       navigate("/app");
     } catch (err: any) {
-      setError(err.message || "Registrierung fehlgeschlagen");
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -42,7 +42,7 @@ const SignupPage: React.FC = () => {
       await loginWithGoogle();
       navigate("/app");
     } catch (err: any) {
-      setError(err.message || "Google-Registrierung fehlgeschlagen");
+      setError(err.message || "Google registration failed");
     } finally {
       setLoading(false);
     }
@@ -58,10 +58,10 @@ const SignupPage: React.FC = () => {
             className="h-20 w-auto mx-auto mb-4 drop-shadow-2xl"
           />
           <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Registrieren
+            Sign Up
           </h1>
           <p className="text-slate-700">
-            Erstellen Sie ein kostenloses Konto
+            Create a free account
           </p>
         </div>
 
@@ -82,13 +82,13 @@ const SignupPage: React.FC = () => {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               className="w-full glass px-4 py-3 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Ihr Name"
+              placeholder="Your Name"
             />
           </div>
 
           <div>
             <label htmlFor="email" className="block text-sm font-semibold text-slate-800 mb-2">
-              E-Mail
+              Email
             </label>
             <input
               id="email"
@@ -97,13 +97,13 @@ const SignupPage: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full glass px-4 py-3 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="ihre@email.de"
+              placeholder="your@email.com"
             />
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm font-semibold text-slate-800 mb-2">
-              Passwort
+              Password
             </label>
             <input
               id="password"
@@ -113,7 +113,7 @@ const SignupPage: React.FC = () => {
               required
               minLength={6}
               className="w-full glass px-4 py-3 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Mindestens 6 Zeichen"
+              placeholder="At least 6 characters"
             />
           </div>
 
@@ -122,7 +122,7 @@ const SignupPage: React.FC = () => {
             disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
           >
-            {loading ? "Registrierung..." : "Kostenlos registrieren"}
+            {loading ? "Signing up..." : "Sign Up Free"}
           </button>
         </form>
 
@@ -131,7 +131,7 @@ const SignupPage: React.FC = () => {
             <div className="w-full border-t border-white/30"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 glass text-slate-700">oder</span>
+            <span className="px-2 glass text-slate-700">or</span>
           </div>
         </div>
 
@@ -140,30 +140,30 @@ const SignupPage: React.FC = () => {
           disabled={loading}
           className="w-full glass hover:bg-white/30 border border-white/20 text-slate-900 font-semibold py-3 px-6 rounded-lg transition-colors mb-4"
         >
-          Mit Google registrieren
+          Sign up with Google
         </button>
 
         <p className="text-center text-slate-700 text-sm mb-4">
-          Mit der Registrierung akzeptieren Sie unsere{" "}
+          By signing up, you agree to our{" "}
           <Link to="/legal/terms" className="text-blue-600 hover:underline">
-            AGB
+            Terms
           </Link>{" "}
-          und{" "}
+          and{" "}
           <Link to="/legal/privacy" className="text-blue-600 hover:underline">
-            Datenschutzerklärung
+            Privacy Policy
           </Link>.
         </p>
 
         <p className="text-center text-slate-700">
-          Bereits ein Konto?{" "}
+          Already have an account?{" "}
           <Link to="/login" className="text-blue-600 hover:underline font-semibold">
-            Jetzt anmelden
+            Sign in now
           </Link>
         </p>
 
         <div className="mt-6 text-center">
           <Link to="/" className="text-sm text-slate-600 hover:text-slate-800">
-            ← Zurück zur Startseite
+            ← Back to homepage
           </Link>
         </div>
       </div>

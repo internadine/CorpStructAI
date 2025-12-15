@@ -12,7 +12,7 @@ import {
   serverTimestamp
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { Project, StructureData } from "../types";
+import { Project, StructureData, ProjectType } from "../types";
 
 // User profile operations
 export const createUserProfile = async (userId: string, email: string, displayName?: string) => {
@@ -46,11 +46,24 @@ export const updateUserProfile = async (userId: string, data: Partial<{
 // Project operations
 export const saveProject = async (userId: string, project: Project) => {
   const projectRef = doc(db, "users", userId, "projects", project.id);
-  await setDoc(projectRef, {
-    ...project,
+  
+  // Filter out undefined values as Firestore doesn't support them
+  const projectData: any = {
+    id: project.id,
+    name: project.name,
     lastModified: Timestamp.now(),
     data: project.data
-  });
+  };
+  
+  if (project.projectType !== undefined) {
+    projectData.projectType = project.projectType;
+  }
+  
+  if (project.country !== undefined) {
+    projectData.country = project.country;
+  }
+  
+  await setDoc(projectRef, projectData);
 };
 
 export const getProject = async (userId: string, projectId: string): Promise<Project | null> => {
@@ -63,7 +76,9 @@ export const getProject = async (userId: string, projectId: string): Promise<Pro
     id: projectSnap.id,
     name: data.name,
     lastModified: data.lastModified?.toMillis() || Date.now(),
-    data: data.data as StructureData
+    data: data.data as StructureData,
+    projectType: data.projectType || ProjectType.CORPORATE_STRUCTURE,
+    country: data.country
   };
 };
 
@@ -77,7 +92,9 @@ export const getUserProjects = async (userId: string): Promise<Project[]> => {
       id: doc.id,
       name: data.name,
       lastModified: data.lastModified?.toMillis() || Date.now(),
-      data: data.data as StructureData
+      data: data.data as StructureData,
+      projectType: data.projectType || ProjectType.CORPORATE_STRUCTURE,
+      country: data.country
     };
   }).sort((a, b) => b.lastModified - a.lastModified);
 };

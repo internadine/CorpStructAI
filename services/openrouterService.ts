@@ -171,7 +171,7 @@ export const chatCompletion = async (
       systemInstruction,
       model: 'google/gemini-2.5-flash-preview-09-2025',
       temperature: 0.7,
-      max_tokens: 2000
+      max_tokens: 4000 // Increased to avoid truncation of longer responses
     });
 
     return (result.data as any).content;
@@ -219,6 +219,7 @@ Consider:
 - Key personnel and their roles
 - Ownership relationships and structure
 - Potential synergies between units
+- Notes on each unit (certifications like AZAV, ISO 9001, employee counts, special circumstances, etc.)
 
 Answer strategically, practically, and with concrete action recommendations in English.
 Refer specifically to the names of units and their specific situations.`;
@@ -382,21 +383,18 @@ Your task is to answer questions about this structure, identify risks (e.g. hidd
 Answer precisely, professionally, but understandably in ${responseLanguage}.
 Refer specifically to the names of companies and people in the structure.
 
+IMPORTANT: Pay special attention to the "notes" field on each company/node. These notes contain crucial information like certifications (e.g. AZAV-certified, ISO 9001), employee counts, special arrangements, or other relevant details that should be considered in your legal and tax advice.
+
 FORMATTING REQUIREMENTS:
-- Use proper Markdown table formatting for any tables or structured data
-- Tables MUST use proper Markdown syntax with:
-  1. A header row with column names
-  2. A separator row with dashes (at least 3 dashes per column)
-  3. Data rows with matching number of columns
-- Example of CORRECT table format:
-  | Column 1 | Column 2 | Column 3 |
-  |----------|----------|----------|
-  | Data 1   | Data 2   | Data 3   |
-  | Data 4   | Data 5   | Data 6   |
-- NEVER use malformed tables like: | Col1 | Col2 || ---|---|---||
-- ALWAYS include the separator row between header and data
-- Use headers, bold text (**text**), and lists appropriately for clarity
-- Ensure all tables are complete with all rows properly formatted
+- DO NOT use markdown tables. Tables do not render well in this chat interface.
+- Instead of tables, present structured data using:
+  * Bullet point lists with clear labels
+  * Numbered lists for step-by-step information
+  * Bold text (**text**) for important terms or headers
+  * Nested lists for hierarchical information
+- Use headers (##, ###) to organize longer responses
+- Use bold text (**text**) and lists appropriately for clarity
+- Keep responses well-structured and easy to read
   `.trim();
 };
 

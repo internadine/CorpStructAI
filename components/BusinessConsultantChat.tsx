@@ -150,7 +150,8 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
           companyResources: company.companyResources,
           people: companyPeople,
           parentIds: company.parentIds,
-          parentOwnership: company.parentOwnership
+          parentOwnership: company.parentOwnership,
+          notes: company.notes
         };
       });
 
@@ -175,18 +176,33 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
 
       // Save conversation and extract memories asynchronously (don't block UI)
       if (user && projectId) {
-        try {
-          const conversationId = await saveConversation(user.uid, projectId, 'business', updatedMessages);
-          // Trigger memory extraction in background
-          extractMemories(user.uid, projectId, conversationId, structureData).catch(err => {
-            console.error('Error extracting memories:', err);
-          });
-          // Reload memory context to include newly extracted memories
-          const newContext = await getMemoryContext(user.uid, projectId);
-          setMemoryContext(newContext);
-        } catch (error) {
-          console.error('Error saving conversation:', error);
-        }
+        // Run in background without blocking UI
+        (async () => {
+          try {
+            console.log('Saving conversation for memory extraction...', { userId: user.uid, projectId });
+            const conversationId = await saveConversation(user.uid, projectId, 'business', updatedMessages);
+            console.log('Conversation saved, ID:', conversationId);
+            
+            // Trigger memory extraction
+            await extractMemories(user.uid, projectId, conversationId, structureData);
+            console.log('Memory extraction completed successfully');
+            
+            // Reload memory context to include newly extracted memories
+            const newContext = await getMemoryContext(user.uid, projectId);
+            console.log('Memory context reloaded, length:', newContext.length);
+            setMemoryContext(newContext);
+          } catch (err: any) {
+            console.error('Error in memory extraction flow:', err);
+            console.error('Error details:', {
+              message: err?.message,
+              code: err?.code,
+              details: err?.details,
+              stack: err?.stack
+            });
+          }
+        })();
+      } else {
+        console.warn('Cannot save conversation - missing user or projectId', { hasUser: !!user, hasProjectId: !!projectId });
       }
     } catch (error) {
       console.error(error);

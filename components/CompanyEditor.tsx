@@ -390,6 +390,17 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
                   className="w-full p-2.5 glass border border-white/30 text-slate-900 rounded-xl text-sm focus:ring-2 focus:ring-white/50 outline-none backdrop-blur-xl"
               />
             </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Notes for Consultancy</label>
+              <textarea 
+                value={formData.notes || ''}
+                onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Add notes for AI consultancy (e.g. AZAV-certified, 50 employees, ISO 9001 certified, special tax arrangements...)"
+                className="w-full p-2.5 glass border border-white/30 text-slate-900 rounded-xl text-sm focus:ring-2 focus:ring-blue-400/50 outline-none resize-none h-24 backdrop-blur-xl"
+              />
+              <p className="text-[10px] text-slate-700 mt-1">These notes will be considered by both business and legal consultants when providing advice.</p>
+            </div>
           </div>
 
           <hr className="border-slate-100" />

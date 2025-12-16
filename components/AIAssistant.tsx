@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { generateStructureFromText } from '../services/openrouterService';
 import { StructureData, ProjectType } from '../types';
 import { useVoiceInput } from '../hooks/useVoiceInput';
@@ -39,17 +39,34 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     stopListening 
   } = useVoiceInput({ language: speechLanguage });
 
-  // Sync voice transcript with prompt (append to existing text)
+  // Track the last transcript length to only append new parts
+  const lastTranscriptLengthRef = useRef(0);
+  
+  // Sync voice transcript with prompt (append only new parts)
   useEffect(() => {
-    if (transcript) {
-      setPrompt(prev => prev ? `${prev} ${transcript}` : transcript);
+    if (transcript && isListening) {
+      // If transcript length decreased, it was reset - start fresh
+      if (transcript.length < lastTranscriptLengthRef.current) {
+        lastTranscriptLengthRef.current = 0;
+      }
+      
+      const newPart = transcript.slice(lastTranscriptLengthRef.current);
+      if (newPart.trim()) {
+        setPrompt(prev => prev ? `${prev} ${newPart}` : newPart);
+      }
+      lastTranscriptLengthRef.current = transcript.length;
+    } else if (!isListening) {
+      // Reset when stopping
+      lastTranscriptLengthRef.current = 0;
     }
-  }, [transcript]);
+  }, [transcript, isListening]);
 
   const toggleVoiceInput = () => {
     if (isListening) {
       stopListening();
+      lastTranscriptLengthRef.current = 0;
     } else {
+      lastTranscriptLengthRef.current = 0;
       startListening();
     }
   };

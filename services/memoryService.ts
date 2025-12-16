@@ -74,6 +74,13 @@ export const extractMemories = async (
     const existingMemories = await getMemories(userId, projectId);
 
     // Call Firebase Function to extract memories
+    console.log('Calling extractMemoriesFromConversation function with:', {
+      messageCount: messages.length,
+      chatType,
+      structureDataExists: !!structureData,
+      existingMemoriesCount: existingMemories.length
+    });
+    
     const result = await extractMemoriesFunction({
       messages,
       chatType,
@@ -81,7 +88,9 @@ export const extractMemories = async (
       existingMemories: existingMemories.map(m => m.fact)
     });
 
+    console.log('Memory extraction result:', result);
     const extractedFacts = (result.data as any)?.facts || [];
+    console.log('Extracted facts count:', extractedFacts.length);
 
     if (extractedFacts.length === 0) {
       // Mark as extracted even if no facts found
@@ -114,8 +123,14 @@ export const extractMemories = async (
 
     // Mark conversation as extracted
     await setDoc(conversationRef, { extracted: true }, { merge: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error extracting memories:", error);
+    console.error("Error details:", {
+      message: error?.message,
+      code: error?.code,
+      details: error?.details,
+      stack: error?.stack
+    });
     // Don't throw - memory extraction failures shouldn't block the app
   }
 };
@@ -148,7 +163,7 @@ export const getMemories = async (userId: string, projectId: string): Promise<Me
 
 /**
  * Get formatted memory context for system instructions
- * Returns top 10-15 most relevant memories sorted by importance and recency
+ * Returns top 5-7 most relevant high-importance memories sorted by importance and recency
  */
 export const getMemoryContext = async (userId: string, projectId: string): Promise<string> => {
   try {
@@ -158,15 +173,22 @@ export const getMemoryContext = async (userId: string, projectId: string): Promi
       return "";
     }
 
+    // Filter to only high-importance memories (4-5)
+    const highImportanceMemories = memories.filter(m => m.importance >= 4);
+
+    if (highImportanceMemories.length === 0) {
+      return "";
+    }
+
     // Sort by importance (descending) and recency (descending)
-    const sortedMemories = memories.sort((a, b) => {
+    const sortedMemories = highImportanceMemories.sort((a, b) => {
       const importanceDiff = b.importance - a.importance;
       if (importanceDiff !== 0) return importanceDiff;
       return b.createdAt - a.createdAt;
     });
 
-    // Take top 15 memories
-    const topMemories = sortedMemories.slice(0, 15);
+    // Take top 5-7 memories (fewer to avoid overwhelming context)
+    const topMemories = sortedMemories.slice(0, 7);
 
     if (topMemories.length === 0) {
       return "";
@@ -175,7 +197,7 @@ export const getMemoryContext = async (userId: string, projectId: string): Promi
     // Format as readable context
     const memoryList = topMemories.map(m => `- ${m.fact}`).join('\n');
 
-    return `\n\nPrevious discussions revealed the following important facts about this structure:\n${memoryList}`;
+    return `\n\nPrevious discussions revealed the following critical facts about this structure:\n${memoryList}`;
   } catch (error) {
     console.error("Error getting memory context:", error);
     return "";

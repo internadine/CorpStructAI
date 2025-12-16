@@ -48,7 +48,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
     error: voiceError, 
     isSupported: isVoiceSupported,
     startListening, 
-    stopListening 
+    stopListening,
+    resetTranscript
   } = useVoiceInput({ language: speechLanguage });
 
   // Sync voice transcript with input
@@ -267,7 +268,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
     const userMsg = input;
     const userTimestamp = new Date();
     setMessages(prev => [...prev, { role: 'user', text: userMsg, timestamp: userTimestamp }]);
+    
+    // Clear input and stop voice input if active
     setInput('');
+    if (isListening) {
+      stopListening();
+    }
+    resetTranscript();
     setIsThinking(true);
 
     try {
@@ -285,7 +292,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
         content: userMsg
       });
 
-      const responseText = await chatCompletion(chatMessages, systemInstruction);
+      let responseText = await chatCompletion(chatMessages, systemInstruction);
+      
+      // Remove markdown tables entirely as they don't render well in chat
+      // Match table separator rows (|---|---|) and surrounding content
+      // First remove any line that looks like a table separator (contains only |, -, :, and spaces)
+      responseText = responseText.replace(/^\|[\s\-:|]+\|?\s*$/gm, '');
+      // Remove lines that are primarily table-formatted (start and end with |)
+      responseText = responseText.replace(/^\|[^|\n]*(\|[^|\n]*)+\|?\s*$/gm, '');
+      // Clean up any resulting multiple blank lines
+      responseText = responseText.replace(/\n{3,}/g, '\n\n');
+      
       const modelTimestamp = new Date();
 
       const updatedMessages = [...messages, { role: 'user' as const, text: userMsg, timestamp: userTimestamp }, { role: 'model' as const, text: responseText, timestamp: modelTimestamp }];
@@ -293,18 +310,33 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
 
       // Save conversation and extract memories asynchronously (don't block UI)
       if (user && projectId) {
-        try {
-          const conversationId = await saveConversation(user.uid, projectId, 'legal', updatedMessages);
-          // Trigger memory extraction in background
-          extractMemories(user.uid, projectId, conversationId, structureData).catch(err => {
-            console.error('Error extracting memories:', err);
-          });
-          // Reload memory context to include newly extracted memories
-          const newContext = await getMemoryContext(user.uid, projectId);
-          setMemoryContext(newContext);
-        } catch (error) {
-          console.error('Error saving conversation:', error);
-        }
+        // Run in background without blocking UI
+        (async () => {
+          try {
+            console.log('Saving conversation for memory extraction...', { userId: user.uid, projectId });
+            const conversationId = await saveConversation(user.uid, projectId, 'legal', updatedMessages);
+            console.log('Conversation saved, ID:', conversationId);
+            
+            // Trigger memory extraction
+            await extractMemories(user.uid, projectId, conversationId, structureData);
+            console.log('Memory extraction completed successfully');
+            
+            // Reload memory context to include newly extracted memories
+            const newContext = await getMemoryContext(user.uid, projectId);
+            console.log('Memory context reloaded, length:', newContext.length);
+            setMemoryContext(newContext);
+          } catch (err: any) {
+            console.error('Error in memory extraction flow:', err);
+            console.error('Error details:', {
+              message: err?.message,
+              code: err?.code,
+              details: err?.details,
+              stack: err?.stack
+            });
+          }
+        })();
+      } else {
+        console.warn('Cannot save conversation - missing user or projectId', { hasUser: !!user, hasProjectId: !!projectId });
       }
     } catch (error) {
       console.error(error);
@@ -443,7 +475,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className={`flex-1 overflow-y-auto p-5 space-y-5 ${isFullscreen ? 'px-8 lg:px-16' : ''}`}>
+      <div ref={scrollRef} className={`flex-1 overflow-y-auto p-5 pb-8 space-y-5 min-h-0 ${isFullscreen ? 'px-8 lg:px-16' : ''}`}>
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} group`}>
             <div className={`relative ${isFullscreen ? 'max-w-[70%]' : 'max-w-[85%]'} rounded-2xl p-4 shadow-lg ${

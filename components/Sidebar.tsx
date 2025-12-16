@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Company, CompanyType, Person, ProjectType, getNodeLabelForProjectType } from '../types';
 import { useAuth } from './Auth/AuthProvider';
 import { getCurrentSubscription } from '../services/subscriptionService';
@@ -45,6 +45,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [tempName, setTempName] = useState(currentProjectName);
   const { user } = useAuth();
   const [subscription, setSubscription] = useState<any>(null);
+  const location = useLocation();
+  const isOnSettingsPage = location.pathname === '/settings';
   
   // Sync if prop changes
   useEffect(() => {
@@ -85,11 +87,22 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-b border-white/20 flex flex-col gap-3 flex-shrink-0">
         {/* Logo */}
         <div className="flex items-center justify-center mb-4 pb-4 border-b border-white/20">
-          <img 
-            src="/orgphant-logo.png" 
-            alt="OrgPhant Logo" 
-            className="h-24 w-auto object-contain drop-shadow-2xl"
-          />
+          {isOnSettingsPage ? (
+            <Link to="/app" className="transition-transform hover:scale-105 active:scale-95">
+              <img 
+                src="/orgphant-logo.png" 
+                alt="OrgPhant Logo" 
+                className="h-24 w-auto object-contain drop-shadow-2xl cursor-pointer"
+                title="Back to Canvas"
+              />
+            </Link>
+          ) : (
+            <img 
+              src="/orgphant-logo.png" 
+              alt="OrgPhant Logo" 
+              className="h-24 w-auto object-contain drop-shadow-2xl"
+            />
+          )}
         </div>
         <div className="flex justify-between items-start">
           <div className="flex-1 mr-2">

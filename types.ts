@@ -65,6 +65,7 @@ export interface Company {
   financialResources?: number; // Financial resources in EUR
   companyResources?: CompanyResource[]; // Buildings, offices, etc.
   customPosition?: { x: number; y: number }; // Custom position for drag and drop
+  notes?: string; // Additional notes for AI consultancy (e.g. AZAV-certified, employee count, special circumstances)
 }
 
 export interface StructureData {

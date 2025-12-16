@@ -114,7 +114,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
             <div>
               <h2 className="font-semibold text-lg">AI Architect</h2>
               <p className="text-xs text-slate-300 mt-1">
-                Describe your company structure. E.g. "Create a holding Alpha that owns Beta GmbH. Max Mustermann is managing director of Alpha."
+                {(() => {
+                  if (projectType === ProjectType.TEAM_STRUCTURE) {
+                    return 'Describe your team structure. E.g. "Create an Engineering team with Frontend and Backend subteams. Sarah is the team lead."';
+                  } else if (projectType === ProjectType.PRINCE2_PROJECT || projectType === ProjectType.PSMI_PROJECT) {
+                    return 'Describe your project structure. E.g. "Create a Planning stage with multiple work packages. John is the project manager."';
+                  } else {
+                    return 'Describe your company structure. E.g. "Create a holding Alpha that owns Beta GmbH. Max Mustermann is managing director of Alpha."';
+                  }
+                })()}
               </p>
             </div>
           </div>

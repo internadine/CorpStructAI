@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="glass-strong border-b border-white/20 sticky top-0 z-50">
+    <nav className="glass-strong border-b border-white/30 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -24,7 +24,7 @@ const Navbar: React.FC = () => {
                 alt="OrgPhant Logo"
                 className="h-9 w-auto mr-3"
               />
-              <span className="text-xl font-bold text-white drop-shadow-lg">OrgPhant</span>
+              <span className="text-xl font-bold text-slate-800">OrgPhant</span>
             </Link>
           </div>
 
@@ -32,13 +32,13 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link
               to="/features"
-              className="text-white/80 hover:text-white text-sm font-medium transition-colors"
+              className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
             >
               Features
             </Link>
             <Link
               to="/pricing"
-              className="text-white/80 hover:text-white text-sm font-medium transition-colors"
+              className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
             >
               Pricing
             </Link>
@@ -46,19 +46,19 @@ const Navbar: React.FC = () => {
               <>
                 <Link
                   to="/app"
-                  className="text-white/80 hover:text-white text-sm font-medium transition-colors"
+                  className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
                 >
                   Dashboard
                 </Link>
                 <Link
                   to="/settings"
-                  className="text-white/80 hover:text-white text-sm font-medium transition-colors"
+                  className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
                 >
                   Settings
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="text-white/80 hover:text-white text-sm font-medium transition-colors"
+                  className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
                 >
                   Logout
                 </button>
@@ -67,13 +67,13 @@ const Navbar: React.FC = () => {
               <>
                 <Link
                   to="/login"
-                  className="text-white/80 hover:text-white text-sm font-medium transition-colors"
+                  className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
                 >
                   Login
                 </Link>
                 <Link
                   to="/signup"
-                  className="bg-white/90 hover:bg-white text-slate-800 text-sm font-semibold py-2 px-5 rounded-lg transition-all shadow-sm"
+                  className="bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold py-2 px-5 rounded-lg transition-all shadow-sm"
                 >
                   Sign Up
                 </Link>
@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden text-white p-2"
+            className="md:hidden text-slate-700 p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,18 +98,18 @@ const Navbar: React.FC = () => {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-white/20">
+          <div className="md:hidden py-4 border-t border-white/30">
             <div className="flex flex-col space-y-3">
               <Link
                 to="/features"
-                className="text-white/80 hover:text-white text-sm font-medium py-2"
+                className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Features
               </Link>
               <Link
                 to="/pricing"
-                className="text-white/80 hover:text-white text-sm font-medium py-2"
+                className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
@@ -118,14 +118,14 @@ const Navbar: React.FC = () => {
                 <>
                   <Link
                     to="/app"
-                    className="text-white/80 hover:text-white text-sm font-medium py-2"
+                    className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
                   </Link>
                   <Link
                     to="/settings"
-                    className="text-white/80 hover:text-white text-sm font-medium py-2"
+                    className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Settings
@@ -135,7 +135,7 @@ const Navbar: React.FC = () => {
                       handleLogout();
                       setMobileMenuOpen(false);
                     }}
-                    className="text-white/80 hover:text-white text-sm font-medium py-2 text-left"
+                    className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2 text-left"
                   >
                     Logout
                   </button>
@@ -144,14 +144,14 @@ const Navbar: React.FC = () => {
                 <>
                   <Link
                     to="/login"
-                    className="text-white/80 hover:text-white text-sm font-medium py-2"
+                    className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
                     to="/signup"
-                    className="bg-white/90 hover:bg-white text-slate-800 text-sm font-semibold py-2 px-5 rounded-lg transition-all text-center"
+                    className="bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold py-2 px-5 rounded-lg transition-all text-center"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Sign Up

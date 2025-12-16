@@ -20,7 +20,7 @@ const getLabelsForProjectType = (projectType?: ProjectType) => {
     personRole: 'Role (e.g. CEO)',
     businessPurpose: 'Business Purpose',
     resources: 'Company Resources (Buildings, etc.)',
-    parentLabel: 'Parent Companies (Holdings)'
+    parentLabel: 'Parent Companies'
   };
 
   if (!projectType || projectType === ProjectType.CORPORATE_STRUCTURE) {

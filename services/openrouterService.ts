@@ -8,6 +8,9 @@ const openrouterGenerateStructureFunction = httpsCallable(functions, 'openrouter
 
 // Context-aware prompt generation based on project type
 const getSystemPromptForProjectType = (projectType?: ProjectType): string => {
+  const isCorporateStructure = !projectType || projectType === ProjectType.CORPORATE_STRUCTURE;
+  const parentTerm = isCorporateStructure ? 'übergeordneten Holdings' : 'übergeordneten Einheiten';
+  
   const basePrompt = `Du bist ein Experte für Strukturplanung. Analysiere Anfragen und erstelle valides JSON.
 
 Aktueller Struktur-Kontext:
@@ -21,7 +24,7 @@ Wenn der Nutzer eine komplett neue Struktur will, ignoriere den Kontext.
 
 Wichtig:
 - Ein Unternehmen kann mehrere Muttergesellschaften haben ('parentIds' array).
-- 'parentIds' enthält die IDs der übergeordneten Holdings. Wenn keine Muttergesellschaft, ist das Array leer.
+- 'parentIds' enthält die IDs der ${parentTerm}. Wenn keine Muttergesellschaft, ist das Array leer.
 - IDs müssen eindeutige Strings sein.
 
 Erlaubte Unternehmenstypen ('type'): ${Object.values(CompanyType).join(', ')}.`;

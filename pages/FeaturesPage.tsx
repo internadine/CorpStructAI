@@ -9,8 +9,82 @@ const FeaturesPage: React.FC = () => {
           Features
         </h1>
         <p className="text-xl text-center text-white/90 mb-16">
-          Everything you need to manage your company structure
+          One powerful tool for all your organizational structures
         </p>
+
+        {/* Use Cases Section */}
+        <section className="mb-20">
+          <h2 className="text-2xl font-semibold text-white mb-8 uppercase tracking-wide">
+            Use Cases
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="glass-strong p-6 rounded-2xl hover:scale-[1.02] transition-transform">
+              <div className="text-3xl mb-4">🏢</div>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                Corporate Structures
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Visualize holding companies, subsidiaries, and ownership percentages. 
+                Perfect for GmbH, UG, KG, AG, and international structures.
+              </p>
+            </div>
+
+            <div className="glass-strong p-6 rounded-2xl hover:scale-[1.02] transition-transform">
+              <div className="text-3xl mb-4">👥</div>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                Team Hierarchies
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Map out your team structure, reporting lines, and responsibilities. 
+                Great for onboarding and organizational clarity.
+              </p>
+            </div>
+
+            <div className="glass-strong p-6 rounded-2xl hover:scale-[1.02] transition-transform">
+              <div className="text-3xl mb-4">📊</div>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                Project Organizations
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Define project structures with workstreams, leads, and dependencies. 
+                Keep complex projects organized visually.
+              </p>
+            </div>
+
+            <div className="glass-strong p-6 rounded-2xl hover:scale-[1.02] transition-transform">
+              <div className="text-3xl mb-4">🏠</div>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                Family Offices
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Plan succession, visualize asset distribution, and manage 
+                family business structures across generations.
+              </p>
+            </div>
+
+            <div className="glass-strong p-6 rounded-2xl hover:scale-[1.02] transition-transform">
+              <div className="text-3xl mb-4">🔄</div>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                Restructuring Plans
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Model before/after scenarios for mergers, acquisitions, or 
+                internal reorganizations. Compare options visually.
+              </p>
+            </div>
+
+            <div className="glass-strong p-6 rounded-2xl hover:scale-[1.02] transition-transform">
+              <div className="text-3xl mb-4">💼</div>
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                Investment Portfolios
+              </h3>
+              <p className="text-slate-600 text-sm leading-relaxed">
+                Track investments, ownership stakes, and portfolio companies 
+                in one clear visual overview.
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* Free Features */}
         <section className="mb-20">
@@ -25,11 +99,11 @@ const FeaturesPage: React.FC = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Interactive Organizational Charts
+                Drag & Drop Editor
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">
-                Create visual organizational charts with drag & drop. 
-                Supports various company types (GmbH, UG, KG, AG, etc.).
+                Build structures visually with an intuitive drag & drop interface. 
+                No learning curve required.
               </p>
             </div>
 
@@ -40,11 +114,11 @@ const FeaturesPage: React.FC = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Customizable Display
+                Customizable Design
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">
-                Customize colors, ownership percentages, and layouts. 
-                Each company can be individually designed.
+                Customize colors, labels, and layouts. Match your 
+                brand or preferences perfectly.
               </p>
             </div>
 
@@ -55,11 +129,11 @@ const FeaturesPage: React.FC = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Detailed Company Data
+                Rich Data Fields
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">
-                Capture business purpose, financial resources, 
-                real estate, and other assets.
+                Add detailed information: financials, responsibilities, 
+                assets, contacts, and custom fields.
               </p>
             </div>
 
@@ -70,11 +144,11 @@ const FeaturesPage: React.FC = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Key Personnel
+                People Management
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">
-                Manage managing directors, executives, and other 
-                important people in your structure.
+                Track key personnel, roles, and responsibilities 
+                across your entire structure.
               </p>
             </div>
 
@@ -85,11 +159,11 @@ const FeaturesPage: React.FC = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Export Functions
+                Export Options
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">
-                Export your structure as PDF or JSON. 
-                Perfect for presentations and backup.
+                Export as PDF for presentations or JSON for 
+                data integration and backups.
               </p>
             </div>
 
@@ -103,8 +177,8 @@ const FeaturesPage: React.FC = () => {
                 Cloud Storage
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">
-                Store your projects securely in the cloud. 
-                Access from anywhere, anytime.
+                All projects stored securely in the cloud. 
+                Access from any device, anytime.
               </p>
             </div>
           </div>
@@ -128,11 +202,11 @@ const FeaturesPage: React.FC = () => {
                 </span>
               </div>
               <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Tax & Legal Chat
+                Tax & Legal AI Chat
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">
-                Get AI-powered advice on tax and legal questions about your company structure. 
-                Analyze optimization potential.
+                Get AI-powered insights on tax implications and legal considerations 
+                for your corporate structures. Explore optimization opportunities.
               </p>
             </div>
 
@@ -148,44 +222,52 @@ const FeaturesPage: React.FC = () => {
                 </span>
               </div>
               <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Business Consultant
+                Business Strategy Consultant
               </h3>
               <p className="text-slate-600 text-sm leading-relaxed">
-                Analyze business opportunities, synergies, and 
-                growth potential of your company structure.
+                Analyze synergies, growth opportunities, and strategic options. 
+                Get AI recommendations for your organizational setup.
               </p>
             </div>
           </div>
         </section>
 
-        {/* Use Cases */}
+        {/* Who It's For */}
         <section className="mb-16">
           <h2 className="text-2xl font-semibold text-white mb-8 uppercase tracking-wide">
-            Use Cases
+            Who It's For
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="glass-strong p-6 rounded-2xl text-center">
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Corporate Planning
+          <div className="grid md:grid-cols-4 gap-4">
+            <div className="glass-strong p-5 rounded-2xl text-center">
+              <h3 className="text-base font-semibold text-slate-800 mb-1">
+                Entrepreneurs
               </h3>
-              <p className="text-slate-600 text-sm">
-                Plan new company structures and holding companies.
+              <p className="text-slate-600 text-xs">
+                Plan and visualize your business empire
               </p>
             </div>
-            <div className="glass-strong p-6 rounded-2xl text-center">
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Tax Optimization
+            <div className="glass-strong p-5 rounded-2xl text-center">
+              <h3 className="text-base font-semibold text-slate-800 mb-1">
+                Tax Advisors
               </h3>
-              <p className="text-slate-600 text-sm">
-                Visualize structures for tax consulting.
+              <p className="text-slate-600 text-xs">
+                Create client structure documentation
               </p>
             </div>
-            <div className="glass-strong p-6 rounded-2xl text-center">
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                Presentations
+            <div className="glass-strong p-5 rounded-2xl text-center">
+              <h3 className="text-base font-semibold text-slate-800 mb-1">
+                HR & Operations
               </h3>
-              <p className="text-slate-600 text-sm">
-                Create professional organizational charts for investors and partners.
+              <p className="text-slate-600 text-xs">
+                Map team hierarchies clearly
+              </p>
+            </div>
+            <div className="glass-strong p-5 rounded-2xl text-center">
+              <h3 className="text-base font-semibold text-slate-800 mb-1">
+                Consultants
+              </h3>
+              <p className="text-slate-600 text-xs">
+                Present restructuring proposals
               </p>
             </div>
           </div>

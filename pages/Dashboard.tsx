@@ -496,6 +496,7 @@ const Dashboard: React.FC = () => {
           companies={data.companies} 
           people={data.people}
           onNodeClick={setEditingCompany}
+          projectType={activeProject?.projectType}
           onNodePositionUpdate={handleNodePositionUpdate}
         />
       </main>

@@ -3,6 +3,8 @@ import { StructureData, ProjectType } from '../types';
 import ReactMarkdown from 'react-markdown';
 import { chatCompletion, getBusinessConsultantSystemInstruction } from '../services/openrouterService';
 import { useVoiceInput } from '../hooks/useVoiceInput';
+import { useAuth } from './Auth/AuthProvider';
+import { saveConversation, extractMemories, getMemoryContext } from '../services/memoryService';
 
 interface BusinessConsultantChatProps {
   structureData: StructureData;
@@ -10,6 +12,7 @@ interface BusinessConsultantChatProps {
   onClose: () => void;
   projectType?: ProjectType;
   country?: string;
+  projectId?: string;
 }
 
 interface Message {
@@ -17,7 +20,8 @@ interface Message {
   text: string;
 }
 
-const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structureData, isOpen, onClose, projectType, country }) => {
+const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structureData, isOpen, onClose, projectType, country, projectId }) => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     { role: 'model', text: 'Hello! I am your Business Consultant. I analyze your company structure and identify business opportunities, synergies, and growth potential. How can I help you?' }
   ]);
@@ -27,6 +31,7 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
   const [windowSize, setWindowSize] = useState({ width: 480, height: 700 });
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
+  const [memoryContext, setMemoryContext] = useState<string>('');
 
   // Voice input
   const { 
@@ -58,6 +63,26 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isOpen]);
+
+  // Load memories when component opens or projectId changes
+  useEffect(() => {
+    const loadMemories = async () => {
+      if (!user || !projectId || !isOpen) {
+        setMemoryContext('');
+        return;
+      }
+
+      try {
+        const context = await getMemoryContext(user.uid, projectId);
+        setMemoryContext(context);
+      } catch (error) {
+        console.error('Error loading memories:', error);
+        setMemoryContext('');
+      }
+    };
+
+    loadMemories();
+  }, [user, projectId, isOpen]);
 
   // Handle window resize
   useEffect(() => {
@@ -124,7 +149,7 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
         };
       });
 
-      const systemInstruction = getBusinessConsultantSystemInstruction(companyDetails, projectType, country);
+      const systemInstruction = getBusinessConsultantSystemInstruction(companyDetails, projectType, country, memoryContext);
 
       // Convert messages to OpenRouter format (skip initial greeting)
       const chatMessages = messages.slice(1).map(m => ({
@@ -140,7 +165,24 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
 
       const responseText = await chatCompletion(chatMessages, systemInstruction);
 
-      setMessages(prev => [...prev, { role: 'model', text: responseText }]);
+      const updatedMessages = [...messages, { role: 'user' as const, text: userMsg }, { role: 'model' as const, text: responseText }];
+      setMessages(updatedMessages);
+
+      // Save conversation and extract memories asynchronously (don't block UI)
+      if (user && projectId) {
+        try {
+          const conversationId = await saveConversation(user.uid, projectId, 'business', updatedMessages);
+          // Trigger memory extraction in background
+          extractMemories(user.uid, projectId, conversationId, structureData).catch(err => {
+            console.error('Error extracting memories:', err);
+          });
+          // Reload memory context to include newly extracted memories
+          const newContext = await getMemoryContext(user.uid, projectId);
+          setMemoryContext(newContext);
+        } catch (error) {
+          console.error('Error saving conversation:', error);
+        }
+      }
     } catch (error) {
       console.error(error);
       setMessages(prev => [...prev, { role: 'model', text: 'Sorry, there was an error processing your request.' }]);

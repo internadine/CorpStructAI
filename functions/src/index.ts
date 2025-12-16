@@ -205,3 +205,120 @@ export const openrouterGenerateStructure = onCall(
   }
 );
 
+// Cloud Function for memory extraction from conversations
+export const extractMemoriesFromConversation = onCall(
+  { region: "europe-west3", secrets: [OPENROUTER_API_KEY] },
+  async (request) => {
+    // Verify user is authenticated
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'User must be authenticated'
+      );
+    }
+
+    const apiKey = getOpenRouterApiKey();
+    if (!apiKey) {
+      throw new HttpsError(
+        'failed-precondition',
+        'OpenRouter API key not configured'
+      );
+    }
+
+    try {
+      const { messages, chatType, structureData, existingMemories } = request.data;
+      
+      if (!messages || !Array.isArray(messages)) {
+        throw new Error("Messages array is required");
+      }
+
+      // Build extraction prompt
+      const existingMemoriesText = existingMemories && existingMemories.length > 0
+        ? `\n\nExisting memories (avoid duplicates):\n${existingMemories.map((m: string) => `- ${m}`).join('\n')}`
+        : '';
+
+      const structureDataText = structureData
+        ? `\n\nCurrent structure data:\n${JSON.stringify(structureData, null, 2)}`
+        : '';
+
+      const extractionPrompt = `You are analyzing a conversation about a ${chatType === 'business' ? 'business/strategic' : 'tax/legal'} consultation regarding a corporate or team structure.
+
+${structureDataText}
+
+Conversation:
+${messages.map((m: any) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text || m.content}`).join('\n\n')}
+
+${existingMemoriesText}
+
+Your task: Extract important facts from this conversation that should be remembered for future discussions. Focus on:
+- Specific facts about the corporate/team structure
+- Decisions made or preferences stated
+- Constraints or requirements mentioned
+- Relationships between entities
+- Important context that would be useful in future conversations
+
+Filter out:
+- Generic or obvious statements
+- Temporary information
+- Information already in existing memories
+
+Return ONLY a JSON object in this exact format:
+{
+  "facts": [
+    {
+      "fact": "Brief, specific fact statement",
+      "category": "corporate_structure|team_structure|decisions|preferences|constraints|relationships|other",
+      "importance": 1-5,
+      "tags": ["tag1", "tag2"]
+    }
+  ]
+}
+
+Importance scale:
+- 5: Critical information that must be remembered
+- 4: Very important context
+- 3: Moderately important
+- 2: Somewhat relevant
+- 1: Minor detail
+
+Extract 3-10 most important facts. Be selective and focus on actionable, specific information.`;
+
+      const extractionMessages = [
+        {
+          role: 'user' as const,
+          content: extractionPrompt
+        }
+      ];
+
+      const response = await callOpenRouter(apiKey, {
+        messages: extractionMessages,
+        model: 'google/gemini-2.5-flash-preview-09-2025',
+        temperature: 0.3, // Lower temperature for consistent extraction
+        max_tokens: 2000,
+        response_format: { type: 'json_object' }
+      });
+
+      const result = JSON.parse(response);
+      const facts = result.facts || [];
+
+      // Validate and normalize facts
+      const normalizedFacts = facts
+        .filter((fact: any) => fact.fact && fact.fact.trim().length > 0)
+        .map((fact: any) => ({
+          fact: String(fact.fact).trim(),
+          category: fact.category || 'other',
+          importance: Math.max(1, Math.min(5, Number(fact.importance) || 3)),
+          tags: Array.isArray(fact.tags) ? fact.tags.map((t: any) => String(t)) : []
+        }));
+
+      return { success: true, facts: normalizedFacts };
+    } catch (error: any) {
+      console.error('Memory extraction error:', error);
+      throw new HttpsError(
+        'internal',
+        error.message || 'Failed to extract memories'
+      );
+    }
+  }
+);
+

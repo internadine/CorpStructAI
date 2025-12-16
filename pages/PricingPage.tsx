@@ -6,57 +6,58 @@ const PricingPage: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-5xl font-bold text-center text-slate-900 mb-4">
+    <div className="py-16 px-4">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-5xl font-bold text-center text-white mb-4 drop-shadow-lg">
           Pricing
         </h1>
-        <p className="text-xl text-center text-slate-700 mb-12">
-          Choose the plan that fits you
+        <p className="text-xl text-center text-white/90 mb-16">
+          Choose the plan that fits your needs
         </p>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
           {/* Free Plan */}
           <div className="glass-strong p-8 rounded-2xl">
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
               Free
             </h2>
-            <div className="text-4xl font-bold text-slate-900 mb-4">
-              €0<span className="text-lg text-slate-600">/month</span>
+            <div className="mb-6">
+              <span className="text-4xl font-bold text-slate-800">€0</span>
+              <span className="text-slate-600 ml-1">/month</span>
             </div>
-            <ul className="space-y-3 mb-8 text-slate-700">
+            <ul className="space-y-4 mb-8">
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Unlimited organizational charts</span>
+                <span className="text-slate-700">Unlimited organizational charts</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Drag & Drop Editor</span>
+                <span className="text-slate-700">Drag & Drop Editor</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Detailed company data</span>
+                <span className="text-slate-700">Detailed company data</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>PDF & JSON Export</span>
+                <span className="text-slate-700">PDF & JSON Export</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Cloud storage</span>
+                <span className="text-slate-700">Cloud storage</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-slate-400 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-400 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 <span className="text-slate-500">AI consulting</span>
@@ -65,14 +66,14 @@ const PricingPage: React.FC = () => {
             {user ? (
               <Link
                 to="/app"
-                className="block w-full text-center glass border border-white/20 hover:bg-white/30 text-slate-900 font-semibold py-3 px-6 rounded-lg transition-colors"
+                className="block w-full text-center bg-white/50 hover:bg-white/70 text-slate-800 font-semibold py-3 px-6 rounded-xl transition-all"
               >
                 Go to Dashboard
               </Link>
             ) : (
               <Link
                 to="/signup"
-                className="block w-full text-center glass border border-white/20 hover:bg-white/30 text-slate-900 font-semibold py-3 px-6 rounded-lg transition-colors"
+                className="block w-full text-center bg-white/50 hover:bg-white/70 text-slate-800 font-semibold py-3 px-6 rounded-xl transition-all"
               >
                 Start Free
               </Link>
@@ -80,65 +81,68 @@ const PricingPage: React.FC = () => {
           </div>
 
           {/* Consulting Plan */}
-          <div className="glass-strong p-8 rounded-2xl border-2 border-blue-500 relative">
-            <div className="absolute top-4 right-4 bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-              Recommended
+          <div className="glass-strong p-8 rounded-2xl border-2 border-white/60 relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="bg-slate-800 text-white text-xs font-semibold px-4 py-1.5 rounded-full">
+                Recommended
+              </span>
             </div>
-            <h2 className="text-3xl font-bold text-slate-900 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
               Consulting
             </h2>
-            <div className="text-4xl font-bold text-slate-900 mb-4">
-              €49<span className="text-lg text-slate-600">/month</span>
+            <div className="mb-6">
+              <span className="text-4xl font-bold text-slate-800">€49</span>
+              <span className="text-slate-600 ml-1">/month</span>
             </div>
-            <ul className="space-y-3 mb-8 text-slate-700">
+            <ul className="space-y-4 mb-8">
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>All free features</span>
+                <span className="text-slate-700">All free features</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Tax & Legal Chat</span>
+                <span className="text-slate-700">Tax & Legal Chat</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Business Consultant Chat</span>
+                <span className="text-slate-700">Business Consultant Chat</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>AI-powered structure analysis</span>
+                <span className="text-slate-700">AI-powered structure analysis</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Strategic recommendations</span>
+                <span className="text-slate-700">Strategic recommendations</span>
               </li>
               <li className="flex items-start">
-                <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 text-slate-700 mr-3 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Priority support</span>
+                <span className="text-slate-700">Priority support</span>
               </li>
             </ul>
             {user ? (
               <Link
                 to="/app"
-                className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                className="block w-full text-center bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg"
               >
                 Upgrade Now
               </Link>
             ) : (
               <Link
                 to="/signup"
-                className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                className="block w-full text-center bg-slate-800 hover:bg-slate-900 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg"
               >
                 Get Started
               </Link>
@@ -146,13 +150,13 @@ const PricingPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-center mt-12 text-slate-700">
+        <div className="text-center text-white/80">
           <p className="mb-4">
             All plans can be cancelled at any time.
           </p>
           <p className="text-sm">
             Questions? Contact us at{" "}
-            <a href="mailto:nadine.wischmeier@quantophant.io" className="text-blue-600 hover:underline">
+            <a href="mailto:nadine.wischmeier@quantophant.io" className="text-white hover:underline">
               nadine.wischmeier@quantophant.io
             </a>
           </p>
@@ -163,4 +167,3 @@ const PricingPage: React.FC = () => {
 };
 
 export default PricingPage;
-

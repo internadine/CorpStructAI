@@ -86,6 +86,41 @@ export interface D3Node extends HierarchyPointNode<Company & { people: Person[] 
   y0?: number;
 }
 
+export type ChatType = 'business' | 'legal';
+
+export type MemoryCategory = 
+  | 'corporate_structure' 
+  | 'team_structure' 
+  | 'decisions' 
+  | 'preferences' 
+  | 'constraints' 
+  | 'relationships' 
+  | 'other';
+
+export interface Memory {
+  id: string;
+  fact: string;
+  category: MemoryCategory;
+  importance: number; // 1-5
+  createdAt: number;
+  sourceChat: ChatType;
+  tags: string[];
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model' | 'assistant';
+  text: string;
+  content?: string; // For compatibility with OpenRouter format
+}
+
+export interface Conversation {
+  id: string;
+  messages: ChatMessage[];
+  chatType: ChatType;
+  createdAt: number;
+  extracted: boolean;
+}
+
 // Helper function to get node types for a project type
 export const getNodeTypesForProjectType = (projectType?: ProjectType): string[] => {
   if (!projectType || projectType === ProjectType.CORPORATE_STRUCTURE) {

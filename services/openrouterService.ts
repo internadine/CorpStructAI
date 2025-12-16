@@ -183,10 +183,15 @@ export const chatCompletion = async (
 export const getBusinessConsultantSystemInstruction = (
   companyDetails: any[],
   projectType?: ProjectType,
-  country?: string
+  country?: string,
+  memoryContext?: string
 ): string => {
   const countryContext = country 
     ? `IMPORTANT: Provide business and strategic advice considering the business environment, tax implications, and legal framework of ${country}. Consider local market conditions, regulations, and best practices for ${country}.`
+    : '';
+
+  const memorySection = memoryContext && memoryContext.trim()
+    ? `\n\n${memoryContext}\n\nUse this context from previous discussions to avoid repetition and build upon established facts.`
     : '';
 
   const baseInstruction = `You are an experienced consultant with expertise in structure analysis and strategic consulting.
@@ -194,7 +199,7 @@ export const getBusinessConsultantSystemInstruction = (
 Your client shows you the following structure with detailed information:
 ${JSON.stringify(companyDetails, null, 2)}
 
-${countryContext}
+${countryContext}${memorySection}
 
 Your task is to:
 1. Analyze and understand the structure
@@ -279,5 +284,32 @@ Spezifischer Kontext für diesen Projekttyp:
 - Fokusbereiche: ${context.focus}
 
 Konzentriere dich besonders auf die oben genannten Fokusbereiche bei deiner Beratung.`;
+};
+
+// Get system instruction for Tax/Legal Chat
+export const getTaxLegalSystemInstruction = (
+  structureData: StructureData,
+  country?: string,
+  memoryContext?: string
+): string => {
+  const countryContext = country 
+    ? `IMPORTANT: Provide tax and legal advice specifically for ${country}. Consider the local tax laws, legal framework, and regulatory requirements of ${country}.`
+    : 'IMPORTANT: Provide general tax and legal advice. If specific country context is needed, ask the user to specify the country.';
+
+  const memorySection = memoryContext && memoryContext.trim()
+    ? `\n\n${memoryContext}\n\nUse this context from previous discussions to avoid repetition and build upon established facts.`
+    : '';
+
+  return `
+You are an experienced business lawyer and tax advisor${country ? ` specializing in ${country} law and taxation` : ''}.
+Your client shows you the following company structure (JSON format):
+${JSON.stringify(structureData)}
+
+${countryContext}${memorySection}
+
+Your task is to answer questions about this structure, identify risks (e.g. hidden profit distribution, organizational integration, liability) and suggest optimizations.
+Answer precisely, professionally, but understandably in English.
+Refer specifically to the names of companies and people in the structure.
+  `.trim();
 };
 

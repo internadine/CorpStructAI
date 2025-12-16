@@ -545,6 +545,7 @@ const Dashboard: React.FC = () => {
             isOpen={isChatOpen}
             onClose={() => setIsChatOpen(false)}
             country={activeProject?.country}
+            projectId={activeProjectId}
           />
         </SubscriptionGate>
       )}
@@ -582,6 +583,7 @@ const Dashboard: React.FC = () => {
             onClose={() => setIsBusinessChatOpen(false)}
             projectType={activeProject?.projectType}
             country={activeProject?.country}
+            projectId={activeProjectId}
           />
         </SubscriptionGate>
       )}

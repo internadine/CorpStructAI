@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StructureData } from '../types';
 import ReactMarkdown from 'react-markdown';
-import { chatCompletion } from '../services/openrouterService';
+import { chatCompletion, getTaxLegalSystemInstruction } from '../services/openrouterService';
 import { useVoiceInput } from '../hooks/useVoiceInput';
+import { useAuth } from './Auth/AuthProvider';
+import { saveConversation, extractMemories, getMemoryContext } from '../services/memoryService';
 
 interface ChatInterfaceProps {
   structureData: StructureData;
   isOpen: boolean;
   onClose: () => void;
   country?: string;
+  projectId?: string;
 }
 
 interface Message {
@@ -16,7 +19,8 @@ interface Message {
   text: string;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, onClose, country }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, onClose, country, projectId }) => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     { role: 'model', text: 'Hello! I am your assistant for tax and legal questions about your company structure. How can I help?' }
   ]);
@@ -26,6 +30,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
   const [windowSize, setWindowSize] = useState({ width: 480, height: 700 });
   const [isResizing, setIsResizing] = useState(false);
   const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
+  const [memoryContext, setMemoryContext] = useState<string>('');
 
   // Voice input
   const { 
@@ -57,6 +62,26 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isOpen]);
+
+  // Load memories when component opens or projectId changes
+  useEffect(() => {
+    const loadMemories = async () => {
+      if (!user || !projectId || !isOpen) {
+        setMemoryContext('');
+        return;
+      }
+
+      try {
+        const context = await getMemoryContext(user.uid, projectId);
+        setMemoryContext(context);
+      } catch (error) {
+        console.error('Error loading memories:', error);
+        setMemoryContext('');
+      }
+    };
+
+    loadMemories();
+  }, [user, projectId, isOpen]);
 
   // Handle window resize
   useEffect(() => {
@@ -108,21 +133,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ structureData, isOpen, on
     setIsThinking(true);
 
     try {
-      const countryContext = country 
-        ? `IMPORTANT: Provide tax and legal advice specifically for ${country}. Consider the local tax laws, legal framework, and regulatory requirements of ${country}.`
-        : 'IMPORTANT: Provide general tax and legal advice. If specific country context is needed, ask the user to specify the country.';
-      
-      const systemInstruction = `
-You are an experienced business lawyer and tax advisor${country ? ` specializing in ${country} law and taxation` : ''}.
-Your client shows you the following company structure (JSON format):
-${JSON.stringify(structureData)}
-
-${countryContext}
-
-Your task is to answer questions about this structure, identify risks (e.g. hidden profit distribution, organizational integration, liability) and suggest optimizations.
-Answer precisely, professionally, but understandably in English.
-Refer specifically to the names of companies and people in the structure.
-      `.trim();
+      const systemInstruction = getTaxLegalSystemInstruction(structureData, country, memoryContext);
 
       // Convert messages to OpenRouter format (skip initial greeting)
       const chatMessages = messages.slice(1).map(m => ({
@@ -138,7 +149,24 @@ Refer specifically to the names of companies and people in the structure.
 
       const responseText = await chatCompletion(chatMessages, systemInstruction);
 
-      setMessages(prev => [...prev, { role: 'model', text: responseText }]);
+      const updatedMessages = [...messages, { role: 'user' as const, text: userMsg }, { role: 'model' as const, text: responseText }];
+      setMessages(updatedMessages);
+
+      // Save conversation and extract memories asynchronously (don't block UI)
+      if (user && projectId) {
+        try {
+          const conversationId = await saveConversation(user.uid, projectId, 'legal', updatedMessages);
+          // Trigger memory extraction in background
+          extractMemories(user.uid, projectId, conversationId, structureData).catch(err => {
+            console.error('Error extracting memories:', err);
+          });
+          // Reload memory context to include newly extracted memories
+          const newContext = await getMemoryContext(user.uid, projectId);
+          setMemoryContext(newContext);
+        } catch (error) {
+          console.error('Error saving conversation:', error);
+        }
+      }
     } catch (error) {
       console.error(error);
       setMessages(prev => [...prev, { role: 'model', text: 'Sorry, there was an error processing your request.' }]);

@@ -4,17 +4,17 @@ const PrivacyPage: React.FC = () => {
   return (
     <div className="py-16 px-4">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-10 drop-shadow-lg">
+        <h1 className="text-4xl font-bold text-slate-800 mb-10">
           Datenschutzerklärung
         </h1>
 
-        <div className="glass-strong p-8 rounded-2xl">
-          <div className="space-y-8 text-slate-700">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+          <div className="space-y-8 text-slate-600">
             <section>
               <h2 className="text-lg font-semibold text-slate-800 mb-3">
                 1. Datenschutz auf einen Blick
               </h2>
-              <h3 className="text-base font-medium text-slate-800 mb-2">
+              <h3 className="text-base font-medium text-slate-700 mb-2">
                 Allgemeine Hinweise
               </h3>
               <p className="leading-relaxed">
@@ -52,7 +52,7 @@ const PrivacyPage: React.FC = () => {
                 3. Datenerfassung auf dieser Website
               </h2>
               
-              <h3 className="text-base font-medium text-slate-800 mb-2">
+              <h3 className="text-base font-medium text-slate-700 mb-2">
                 Kontaktformular
               </h3>
               <p className="mb-4 leading-relaxed">
@@ -61,7 +61,7 @@ const PrivacyPage: React.FC = () => {
                 Bearbeitung der Anfrage und für den Fall von Anschlussfragen bei uns gespeichert.
               </p>
 
-              <h3 className="text-base font-medium text-slate-800 mb-2">
+              <h3 className="text-base font-medium text-slate-700 mb-2">
                 Registrierung und Nutzerkonto
               </h3>
               <p className="mb-4 leading-relaxed">
@@ -70,7 +70,7 @@ const PrivacyPage: React.FC = () => {
                 Diese Daten werden zur Bereitstellung und Verwaltung Ihres Nutzerkontos verwendet.
               </p>
 
-              <h3 className="text-base font-medium text-slate-800 mb-2">
+              <h3 className="text-base font-medium text-slate-700 mb-2">
                 Abonnement und Zahlungsdaten
               </h3>
               <p className="mb-4 leading-relaxed">
@@ -79,7 +79,7 @@ const PrivacyPage: React.FC = () => {
                 und nicht direkt auf unseren Servern gespeichert.
               </p>
 
-              <h3 className="text-base font-medium text-slate-800 mb-2">
+              <h3 className="text-base font-medium text-slate-700 mb-2">
                 Nutzungsdaten
               </h3>
               <p className="mb-4 leading-relaxed">
@@ -87,7 +87,7 @@ const PrivacyPage: React.FC = () => {
                 Zugriffszeiten, genutzte Funktionen und erstellte Inhalte.
               </p>
 
-              <h3 className="text-base font-medium text-slate-800 mb-2">
+              <h3 className="text-base font-medium text-slate-700 mb-2">
                 Firebase Services
               </h3>
               <p className="mb-4 leading-relaxed">
@@ -103,7 +103,7 @@ const PrivacyPage: React.FC = () => {
                 </a>.
               </p>
 
-              <h3 className="text-base font-medium text-slate-800 mb-2">
+              <h3 className="text-base font-medium text-slate-700 mb-2">
                 KI-Dienste (OpenRouter)
               </h3>
               <p className="leading-relaxed">
@@ -128,9 +128,9 @@ const PrivacyPage: React.FC = () => {
                 Wir arbeiten mit folgenden Dienstleistern zusammen:
               </p>
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li><strong className="text-slate-800">Google Cloud Platform (Firebase):</strong> Hosting und Datenspeicherung</li>
-                <li><strong className="text-slate-800">OpenRouter:</strong> KI-Dienste</li>
-                <li><strong className="text-slate-800">Zahlungsdienstleister:</strong> Abwicklung von Zahlungen</li>
+                <li><strong className="text-slate-700">Google Cloud Platform (Firebase):</strong> Hosting und Datenspeicherung</li>
+                <li><strong className="text-slate-700">OpenRouter:</strong> KI-Dienste</li>
+                <li><strong className="text-slate-700">Zahlungsdienstleister:</strong> Abwicklung von Zahlungen</li>
               </ul>
             </section>
 
@@ -216,8 +216,8 @@ const PrivacyPage: React.FC = () => {
               </p>
             </section>
 
-            <section className="pt-4 border-t border-white/30">
-              <p className="text-xs text-slate-500">
+            <section className="pt-4 border-t border-slate-200">
+              <p className="text-xs text-slate-400">
                 Stand: {new Date().toLocaleDateString("de-DE", { year: "numeric", month: "long", day: "numeric" })}
               </p>
             </section>

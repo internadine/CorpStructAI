@@ -4,12 +4,12 @@ const ImprintPage: React.FC = () => {
   return (
     <div className="py-16 px-4">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-10 drop-shadow-lg">
+        <h1 className="text-4xl font-bold text-slate-800 mb-10">
           Impressum
         </h1>
 
-        <div className="glass-strong p-8 rounded-2xl">
-          <div className="space-y-8 text-slate-700">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+          <div className="space-y-8 text-slate-600">
             <section>
               <h2 className="text-lg font-semibold text-slate-800 mb-3">
                 Angaben gemäß §5 TMG

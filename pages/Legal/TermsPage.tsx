@@ -5,12 +5,12 @@ const TermsPage: React.FC = () => {
   return (
     <div className="py-16 px-4">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-10 drop-shadow-lg">
+        <h1 className="text-4xl font-bold text-slate-800 mb-10">
           Allgemeine Geschäftsbedingungen
         </h1>
 
-        <div className="glass-strong p-8 rounded-2xl">
-          <div className="space-y-8 text-slate-700">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+          <div className="space-y-8 text-slate-600">
             <section>
               <h2 className="text-lg font-semibold text-slate-800 mb-3">
                 1. Geltungsbereich
@@ -49,7 +49,7 @@ const TermsPage: React.FC = () => {
               </p>
             </section>
 
-            <section className="bg-amber-50/50 -mx-8 px-8 py-6 border-y border-amber-200/50">
+            <section className="bg-amber-50 -mx-8 px-8 py-6 border-y border-amber-200">
               <h2 className="text-lg font-semibold text-amber-900 mb-3 flex items-center gap-2">
                 <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -93,7 +93,7 @@ const TermsPage: React.FC = () => {
               <h2 className="text-lg font-semibold text-slate-800 mb-3">
                 5. Kostenlose und kostenpflichtige Funktionen
               </h2>
-              <h3 className="text-base font-medium text-slate-800 mb-2">
+              <h3 className="text-base font-medium text-slate-700 mb-2">
                 Kostenlose Funktionen
               </h3>
               <p className="mb-4 leading-relaxed">
@@ -101,7 +101,7 @@ const TermsPage: React.FC = () => {
                 Export) sind kostenlos nutzbar.
               </p>
 
-              <h3 className="text-base font-medium text-slate-800 mb-2">
+              <h3 className="text-base font-medium text-slate-700 mb-2">
                 Kostenpflichtige Funktionen
               </h3>
               <p className="leading-relaxed">
@@ -191,8 +191,8 @@ const TermsPage: React.FC = () => {
               </p>
             </section>
 
-            <section className="pt-4 border-t border-white/30">
-              <p className="text-xs text-slate-500">
+            <section className="pt-4 border-t border-slate-200">
+              <p className="text-xs text-slate-400">
                 Stand: {new Date().toLocaleDateString("de-DE", { year: "numeric", month: "long", day: "numeric" })}
               </p>
             </section>

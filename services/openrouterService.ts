@@ -289,11 +289,50 @@ Spezifischer Kontext für diesen Projekttyp:
 Konzentriere dich besonders auf die oben genannten Fokusbereiche bei deiner Beratung.`;
 };
 
+// Simple language detection from text
+const detectLanguage = (text: string): string => {
+  if (!text || text.trim().length === 0) return 'English';
+  
+  const lowerText = text.toLowerCase();
+  
+  // Count language-specific words to determine the most likely language
+  const germanWords = (lowerText.match(/\b(der|die|das|und|oder|für|mit|von|zu|ist|sind|wird|werden|können|sollte|möchte|ich|du|wir|sie|dass|wenn|aber|auch|nicht|sein|haben|werden|können|müssen|sollen|dürfen|mögen|wollen|akquirieren|medienunternehmen|konsulting|beratung|geschäftsführung|organisationen|aufgaben|übernehmen)\b/g) || []).length;
+  const frenchWords = (lowerText.match(/\b(le|la|les|et|ou|pour|avec|de|à|est|sont|sera|seront|peuvent|devrait|je|tu|nous|ils|elle|dans|sur|par|une|un|des|être|avoir|faire|aller|vouloir|pouvoir|devoir)\b/g) || []).length;
+  const spanishWords = (lowerText.match(/\b(el|la|los|las|y|o|para|con|de|es|son|será|serán|pueden|debería|yo|tú|nosotros|ellos|ella|en|por|un|una|ser|estar|tener|hacer|ir|querer|poder|deber)\b/g) || []).length;
+  const italianWords = (lowerText.match(/\b(il|la|lo|gli|le|e|o|per|con|di|è|sono|sarà|saranno|possono|dovrebbe|io|tu|noi|loro|ella|in|su|da|un|una|essere|avere|fare|andare|volere|potere|dovere)\b/g) || []).length;
+  
+  // German-specific characters and patterns
+  const hasGermanChars = /[äöüÄÖÜß]/.test(text);
+  
+  // Determine language based on word count and special characters
+  if (hasGermanChars || germanWords >= 3) {
+    return 'German';
+  }
+  if (frenchWords >= 3) {
+    return 'French';
+  }
+  if (spanishWords >= 3) {
+    return 'Spanish';
+  }
+  if (italianWords >= 3) {
+    return 'Italian';
+  }
+  
+  // If we found some German words but no special chars, still likely German
+  if (germanWords >= 2) {
+    return 'German';
+  }
+  
+  // Default to English
+  return 'English';
+};
+
 // Get system instruction for Tax/Legal Chat
 export const getTaxLegalSystemInstruction = (
   structureData: StructureData,
   country?: string,
-  memoryContext?: string
+  memoryContext?: string,
+  userMessage?: string
 ): string => {
   const countryContext = country 
     ? `IMPORTANT: Provide tax and legal advice specifically for ${country}. Consider the local tax laws, legal framework, and regulatory requirements of ${country}.`
@@ -303,6 +342,33 @@ export const getTaxLegalSystemInstruction = (
     ? `\n\n${memoryContext}\n\nUse this context from previous discussions to avoid repetition and build upon established facts.`
     : '';
 
+  // Detect language from user message
+  const responseLanguage = userMessage ? detectLanguage(userMessage) : 'English';
+  
+  // Language-specific instructions
+  const languageInstructions = responseLanguage === 'German' 
+    ? `IMPORTANT: Answer in German (Deutsch). Use German business terminology:
+- "Consulting" should be translated to "Beratung"
+- "AI Consulting" should be "KI-Beratung" or "KI Consulting"
+- "Consulting Services" should be "Beratungsdienstleistungen"
+- Use proper German grammar and professional business language.`
+    : responseLanguage === 'French'
+    ? `IMPORTANT: Answer in French. Use French business terminology:
+- "Consulting" should be translated to "Conseil"
+- "AI Consulting" should be "Conseil en IA"
+- "Consulting Services" should be "Services de conseil"`
+    : responseLanguage === 'Spanish'
+    ? `IMPORTANT: Answer in Spanish. Use Spanish business terminology:
+- "Consulting" should be translated to "Consultoría"
+- "AI Consulting" should be "Consultoría en IA"
+- "Consulting Services" should be "Servicios de consultoría"`
+    : responseLanguage === 'Italian'
+    ? `IMPORTANT: Answer in Italian. Use Italian business terminology:
+- "Consulting" should be translated to "Consulenza"
+- "AI Consulting" should be "Consulenza AI"
+- "Consulting Services" should be "Servizi di consulenza"`
+    : `IMPORTANT: Answer in English. Use standard business terminology.`;
+
   return `
 You are an experienced business lawyer and tax advisor${country ? ` specializing in ${country} law and taxation` : ''}.
 Your client shows you the following company structure (JSON format):
@@ -310,9 +376,27 @@ ${JSON.stringify(structureData)}
 
 ${countryContext}${memorySection}
 
+${languageInstructions}
+
 Your task is to answer questions about this structure, identify risks (e.g. hidden profit distribution, organizational integration, liability) and suggest optimizations.
-Answer precisely, professionally, but understandably in English.
+Answer precisely, professionally, but understandably in ${responseLanguage}.
 Refer specifically to the names of companies and people in the structure.
+
+FORMATTING REQUIREMENTS:
+- Use proper Markdown table formatting for any tables or structured data
+- Tables MUST use proper Markdown syntax with:
+  1. A header row with column names
+  2. A separator row with dashes (at least 3 dashes per column)
+  3. Data rows with matching number of columns
+- Example of CORRECT table format:
+  | Column 1 | Column 2 | Column 3 |
+  |----------|----------|----------|
+  | Data 1   | Data 2   | Data 3   |
+  | Data 4   | Data 5   | Data 6   |
+- NEVER use malformed tables like: | Col1 | Col2 || ---|---|---||
+- ALWAYS include the separator row between header and data
+- Use headers, bold text (**text**), and lists appropriately for clarity
+- Ensure all tables are complete with all rows properly formatted
   `.trim();
 };
 

@@ -27,25 +27,14 @@ const AppContent: React.FC = () => {
   const protectedRoutes = ['/app', '/settings'];
   const isOnProtectedRoute = protectedRoutes.includes(location.pathname);
   
-  // Show navbar if: not logged in OR (logged in but not on protected routes)
+  // Show navbar/footer if: not logged in OR (logged in but not on protected routes)
   const shouldShowNavbar = !isLoggedIn || (isLoggedIn && !isOnProtectedRoute);
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      {shouldShowNavbar && <Navbar />}
-      <main className="flex-1">
+  // App layout (no navbar, full screen)
+  if (isLoggedIn && isOnProtectedRoute) {
+    return (
+      <div className="h-screen w-screen overflow-hidden">
         <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/features" element={<FeaturesPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/legal/imprint" element={<ImprintPage />} />
-          <Route path="/legal/privacy" element={<PrivacyPage />} />
-          <Route path="/legal/terms" element={<TermsPage />} />
-
-          {/* Protected Routes */}
           <Route
             path="/app"
             element={
@@ -63,8 +52,54 @@ const AppContent: React.FC = () => {
             }
           />
         </Routes>
-      </main>
-      {shouldShowNavbar && <Footer />}
+      </div>
+    );
+  }
+
+  // Marketing layout (fixed navbar, scrollable content)
+  return (
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* Fixed Navbar */}
+      {shouldShowNavbar && <Navbar />}
+      
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <main className="min-h-full">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/legal/imprint" element={<ImprintPage />} />
+            <Route path="/legal/privacy" element={<PrivacyPage />} />
+            <Route path="/legal/terms" element={<TermsPage />} />
+
+            {/* Protected Routes (fallback) */}
+            <Route
+              path="/app"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </main>
+        
+        {/* Footer inside scrollable area */}
+        {shouldShowNavbar && <Footer />}
+      </div>
+      
       <CookieConsent />
     </div>
   );

@@ -50,30 +50,30 @@ const SignupPage: React.FC = () => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
-      <div className="glass-strong p-8 rounded-2xl w-full max-w-md">
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 w-full max-w-md">
         <div className="text-center mb-8">
           <img
             src="/orgphant-logo.png"
             alt="OrgPhant Logo"
-            className="h-16 w-auto mx-auto mb-4 drop-shadow-2xl"
+            className="h-16 w-auto mx-auto mb-4"
           />
           <h1 className="text-2xl font-bold text-slate-800 mb-2">
             Create an account
           </h1>
-          <p className="text-slate-600 text-sm">
+          <p className="text-slate-500 text-sm">
             Start for free, no credit card required
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-100/80 text-red-700 px-4 py-3 rounded-xl text-sm mb-4">
+          <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm mb-4 border border-red-200">
             {error}
           </div>
         )}
 
         <form onSubmit={handleEmailSignup} className="space-y-4 mb-6">
           <div>
-            <label htmlFor="displayName" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="displayName" className="block text-sm font-medium text-slate-600 mb-2">
               Name <span className="text-slate-400 font-normal">(optional)</span>
             </label>
             <input
@@ -81,13 +81,13 @@ const SignupPage: React.FC = () => {
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full bg-white/50 px-4 py-3 rounded-xl text-slate-800 placeholder-slate-400 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full bg-white px-4 py-3 rounded-xl text-slate-800 placeholder-slate-400 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
               placeholder="Your Name"
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-600 mb-2">
               Email
             </label>
             <input
@@ -96,13 +96,13 @@ const SignupPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-white/50 px-4 py-3 rounded-xl text-slate-800 placeholder-slate-400 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full bg-white px-4 py-3 rounded-xl text-slate-800 placeholder-slate-400 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
               placeholder="your@email.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-medium text-slate-600 mb-2">
               Password
             </label>
             <input
@@ -112,7 +112,7 @@ const SignupPage: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full bg-white/50 px-4 py-3 rounded-xl text-slate-800 placeholder-slate-400 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full bg-white px-4 py-3 rounded-xl text-slate-800 placeholder-slate-400 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
               placeholder="At least 6 characters"
             />
           </div>
@@ -128,17 +128,17 @@ const SignupPage: React.FC = () => {
 
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/30"></div>
+            <div className="w-full border-t border-slate-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-white/30 backdrop-blur rounded-full text-slate-600 text-xs">or</span>
+            <span className="px-3 bg-white text-slate-400 text-xs">or</span>
           </div>
         </div>
 
         <button
           onClick={handleGoogleSignup}
           disabled={loading}
-          className="w-full bg-white/50 hover:bg-white/70 border border-white/30 text-slate-700 font-medium py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-3 mb-4"
+          className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-3 mb-4"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -149,18 +149,18 @@ const SignupPage: React.FC = () => {
           Sign up with Google
         </button>
 
-        <p className="text-center text-slate-500 text-xs mb-4">
+        <p className="text-center text-slate-400 text-xs mb-4">
           By signing up, you agree to our{" "}
-          <Link to="/legal/terms" className="text-slate-600 hover:underline">
+          <Link to="/legal/terms" className="text-slate-500 hover:underline">
             Terms
           </Link>{" "}
           and{" "}
-          <Link to="/legal/privacy" className="text-slate-600 hover:underline">
+          <Link to="/legal/privacy" className="text-slate-500 hover:underline">
             Privacy Policy
           </Link>.
         </p>
 
-        <p className="text-center text-slate-600 text-sm">
+        <p className="text-center text-slate-500 text-sm">
           Already have an account?{" "}
           <Link to="/login" className="text-slate-800 hover:underline font-medium">
             Sign in
@@ -168,7 +168,7 @@ const SignupPage: React.FC = () => {
         </p>
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-xs text-slate-500 hover:text-slate-700">
+          <Link to="/" className="text-xs text-slate-400 hover:text-slate-600">
             ← Back to homepage
           </Link>
         </div>

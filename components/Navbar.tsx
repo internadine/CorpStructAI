@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="glass-strong border-b border-white/30 sticky top-0 z-50">
+    <nav className="bg-white border-b border-slate-200 flex-shrink-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -32,13 +32,13 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link
               to="/features"
-              className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
+              className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors"
             >
               Features
             </Link>
             <Link
               to="/pricing"
-              className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
+              className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors"
             >
               Pricing
             </Link>
@@ -46,19 +46,19 @@ const Navbar: React.FC = () => {
               <>
                 <Link
                   to="/app"
-                  className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
+                  className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors"
                 >
                   Dashboard
                 </Link>
                 <Link
                   to="/settings"
-                  className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
+                  className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors"
                 >
                   Settings
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
+                  className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors"
                 >
                   Logout
                 </button>
@@ -67,7 +67,7 @@ const Navbar: React.FC = () => {
               <>
                 <Link
                   to="/login"
-                  className="text-slate-700 hover:text-slate-900 text-sm font-medium transition-colors"
+                  className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors"
                 >
                   Login
                 </Link>
@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden text-slate-700 p-2"
+            className="md:hidden text-slate-600 p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,18 +98,18 @@ const Navbar: React.FC = () => {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-white/30">
+          <div className="md:hidden py-4 border-t border-slate-200">
             <div className="flex flex-col space-y-3">
               <Link
                 to="/features"
-                className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
+                className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Features
               </Link>
               <Link
                 to="/pricing"
-                className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
+                className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
@@ -118,14 +118,14 @@ const Navbar: React.FC = () => {
                 <>
                   <Link
                     to="/app"
-                    className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
+                    className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
                   </Link>
                   <Link
                     to="/settings"
-                    className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
+                    className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Settings
@@ -135,7 +135,7 @@ const Navbar: React.FC = () => {
                       handleLogout();
                       setMobileMenuOpen(false);
                     }}
-                    className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2 text-left"
+                    className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2 text-left"
                   >
                     Logout
                   </button>
@@ -144,7 +144,7 @@ const Navbar: React.FC = () => {
                 <>
                   <Link
                     to="/login"
-                    className="text-slate-700 hover:text-slate-900 text-sm font-medium py-2"
+                    className="text-slate-600 hover:text-slate-900 text-sm font-medium py-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Login

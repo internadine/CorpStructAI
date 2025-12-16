@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { generateStructureFromText } from '../services/openrouterService';
 import { StructureData, ProjectType } from '../types';
 import { useVoiceInput } from '../hooks/useVoiceInput';
+import { useSpeechLanguage } from '../hooks/useSpeechLanguage';
+import LanguageSelector from './LanguageSelector';
 
 interface AIAssistantProps {
   currentData: StructureData;
@@ -24,6 +26,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Language preference for speech recognition
+  const { language: speechLanguage } = useSpeechLanguage();
+
   // Voice input
   const { 
     isListening, 
@@ -32,7 +37,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     isSupported: isVoiceSupported,
     startListening, 
     stopListening 
-  } = useVoiceInput({ language: 'en-US' });
+  } = useVoiceInput({ language: speechLanguage });
 
   // Sync voice transcript with prompt (append to existing text)
   useEffect(() => {
@@ -140,6 +145,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
               {/* Voice input controls */}
               {isVoiceSupported && (
                 <div className="flex items-center gap-3 mb-3">
+                  <LanguageSelector compact={true} />
                   <button 
                     type="button"
                     onClick={toggleVoiceInput}

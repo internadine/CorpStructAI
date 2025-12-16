@@ -3,8 +3,10 @@ import { StructureData, ProjectType } from '../types';
 import ReactMarkdown from 'react-markdown';
 import { chatCompletion, getBusinessConsultantSystemInstruction } from '../services/openrouterService';
 import { useVoiceInput } from '../hooks/useVoiceInput';
+import { useSpeechLanguage } from '../hooks/useSpeechLanguage';
 import { useAuth } from './Auth/AuthProvider';
 import { saveConversation, extractMemories, getMemoryContext } from '../services/memoryService';
+import LanguageSelector from './LanguageSelector';
 
 interface BusinessConsultantChatProps {
   structureData: StructureData;
@@ -33,6 +35,9 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
   const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
   const [memoryContext, setMemoryContext] = useState<string>('');
 
+  // Language preference for speech recognition
+  const { language: speechLanguage } = useSpeechLanguage();
+
   // Voice input
   const { 
     isListening, 
@@ -41,7 +46,7 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
     isSupported: isVoiceSupported,
     startListening, 
     stopListening 
-  } = useVoiceInput({ language: 'en-US' });
+  } = useVoiceInput({ language: speechLanguage });
 
   // Sync voice transcript with input
   useEffect(() => {
@@ -204,11 +209,16 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
           <div className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></div>
           <h3 className="font-semibold text-sm">Business Consultant</h3>
         </div>
-        <button onClick={onClose} className="text-emerald-200 hover:text-white">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          {isVoiceSupported && (
+            <LanguageSelector compact={true} />
+          )}
+          <button onClick={onClose} className="text-emerald-200 hover:text-white">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* AI Disclaimer Banner */}

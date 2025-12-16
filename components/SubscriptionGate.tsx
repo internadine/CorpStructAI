@@ -66,3 +66,4 @@ export const SubscriptionGate: React.FC<SubscriptionGateProps> = ({
 
   return <>{children}</>;
 };
+

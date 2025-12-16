@@ -65,3 +65,4 @@ curl -X POST http://localhost:5001/YOUR_PROJECT_ID/us-central1/openrouterChat \
 ✅ Rate limiting can be added at function level  
 ✅ Usage can be tracked and monitored  
 ✅ No API key exposure in client code
+

@@ -21,3 +21,4 @@ const functions = getFunctions(app, functionsRegion);
 
 export { auth, db, functions };
 export default app;
+

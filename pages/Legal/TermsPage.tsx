@@ -165,3 +165,4 @@ const TermsPage: React.FC = () => {
 };
 
 export default TermsPage;
+

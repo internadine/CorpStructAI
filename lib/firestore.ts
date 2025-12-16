@@ -151,3 +151,4 @@ export const getSubscription = async (userId: string) => {
     currentPeriodEnd: null
   };
 };
+

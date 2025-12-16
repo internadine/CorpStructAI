@@ -81,6 +81,16 @@ Erlaubte Unternehmenstypen ('type'): ${Object.values(CompanyType).join(', ')}.`;
       terminology: "Immobilien-Gesellschaften, Properties, Verwaltung, Assets",
       focus: "Immobilien-Strukturen, Property-Holdings, Asset-Management",
       example: "Erstelle eine Immobilien-Struktur mit Holding und mehreren Property-Gesellschaften."
+    },
+    [ProjectType.PRINCE2_PROJECT]: {
+      terminology: "Projektphasen, Work Packages, Produkte, Deliverables, Projektmanager, Team Manager",
+      focus: "PRINCE2 Projektstruktur, Stages, Work Packages, Management Products, Project Board",
+      example: "Erstelle eine PRINCE2 Projektstruktur mit Initiating Stage, mehreren Work Packages und einem Project Board."
+    },
+    [ProjectType.PSMI_PROJECT]: {
+      terminology: "Projektphasen, Meilensteine, Deliverables, Work Packages, Stakeholder-Gruppen",
+      focus: "PSMI Projektstruktur, Phasen, Meilensteine, Deliverables, Stakeholder-Management",
+      example: "Erstelle eine PSMI Projektstruktur mit Planungsphase, mehreren Work Packages und Stakeholder-Gruppen."
     }
   };
 
@@ -249,6 +259,14 @@ Refer specifically to the names of units and their specific situations.`;
     [ProjectType.REAL_ESTATE]: {
       focus: "Asset-Optimierung, Steueroptimierung, Property-Management, Portfolio-Diversifikation, Wertsteigerung",
       terminology: "Immobilien-Gesellschaften, Properties, Verwaltung, Assets"
+    },
+    [ProjectType.PRINCE2_PROJECT]: {
+      focus: "Projektphasen-Management, Work Package-Planung, Risikomanagement, Quality Management, Change Control",
+      terminology: "Projektphasen, Work Packages, Produkte, Deliverables, Projektmanager, Team Manager, Project Board"
+    },
+    [ProjectType.PSMI_PROJECT]: {
+      focus: "Projektphasen-Planung, Meilenstein-Management, Deliverable-Tracking, Stakeholder-Engagement, Ressourcenplanung",
+      terminology: "Projektphasen, Meilensteine, Deliverables, Work Packages, Stakeholder-Gruppen, Projektmanager"
     }
   };
 
@@ -262,3 +280,4 @@ Spezifischer Kontext für diesen Projekttyp:
 
 Konzentriere dich besonders auf die oben genannten Fokusbereiche bei deiner Beratung.`;
 };
+

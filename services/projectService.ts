@@ -112,3 +112,4 @@ export const migrateProjectsToFirestore = async (userId: string): Promise<void> 
     throw e;
   }
 };
+

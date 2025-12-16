@@ -30,13 +30,24 @@ const ImprintPage: React.FC = () => {
               <h2 className="text-2xl font-bold text-slate-900 mb-4">
                 Kontakt
               </h2>
-              <p>
+              <p className="mb-2">
                 E-Mail:{" "}
                 <a
                   href="mailto:nadine.wischmeier@quantophant.io"
                   className="text-blue-600 hover:underline"
                 >
                   nadine.wischmeier@quantophant.io
+                </a>
+              </p>
+              <p className="mb-2">
+                Termin vereinbaren:{" "}
+                <a
+                  href="https://calendly.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Generate Appointment in Calendly
                 </a>
               </p>
             </section>
@@ -95,3 +106,4 @@ const ImprintPage: React.FC = () => {
 };
 
 export default ImprintPage;
+

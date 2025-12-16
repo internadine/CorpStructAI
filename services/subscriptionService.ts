@@ -79,3 +79,4 @@ export const getCurrentSubscription = async (): Promise<Subscription | null> => 
     };
   }
 };
+

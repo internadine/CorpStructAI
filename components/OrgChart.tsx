@@ -30,7 +30,22 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick, onN
   }, []);
 
   useEffect(() => {
-    if (!svgRef.current || companies.length === 0) return;
+    if (!svgRef.current) return;
+
+    // Clear the canvas first, even if there are no companies
+    const svg = d3.select(svgRef.current);
+    
+    // Remove old zoom behavior and reset transform
+    svg.on('.zoom', null);
+    svg.attr('transform', null);
+    
+    // Remove all existing elements
+    svg.selectAll("*").remove();
+
+    // If no companies, show empty canvas
+    if (companies.length === 0) {
+      return;
+    }
 
     // 1. Prepare Data Hierarchy
     // To visualize multi-parent DAG as a tree, we pick the FIRST parent as the "Tree Parent".
@@ -80,10 +95,7 @@ const OrgChart: React.FC<OrgChartProps> = ({ companies, people, onNodeClick, onN
       }
     });
 
-    // Zoom behavior
-    const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove(); // Clear previous
-
+    // Zoom behavior (svg already selected above)
     // Add glass blur filter definitions
     const defs = svg.append("defs");
     const filter = defs.append("filter").attr("id", "glass-blur");

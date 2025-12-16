@@ -68,3 +68,4 @@ export const isAdminUser = (user: User | null): boolean => {
 export const onAuthChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
 };
+

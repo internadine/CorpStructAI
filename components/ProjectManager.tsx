@@ -64,7 +64,9 @@ const PROJECT_TYPE_LABELS: Record<ProjectType, string> = {
   [ProjectType.PARTNERSHIP_JV]: 'Partnership & JV',
   [ProjectType.INVESTMENT_FUND]: 'Investment Fund',
   [ProjectType.NONPROFIT]: 'Non-Profit',
-  [ProjectType.REAL_ESTATE]: 'Immobilien'
+  [ProjectType.REAL_ESTATE]: 'Immobilien',
+  [ProjectType.PRINCE2_PROJECT]: 'PRINCE2 Project',
+  [ProjectType.PSMI_PROJECT]: 'PSMI Project'
 };
 
 const getProjectTypeLabel = (projectType?: ProjectType): string => {

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./components/Auth/AuthProvider";
 import { ProtectedRoute } from "./components/Auth/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import CookieConsent from "./components/CookieConsent";
 
 // Pages
 import LandingPage from "./pages/LandingPage";
@@ -64,6 +65,7 @@ const AppContent: React.FC = () => {
         </Routes>
       </main>
       {shouldShowNavbar && <Footer />}
+      <CookieConsent />
     </div>
   );
 };

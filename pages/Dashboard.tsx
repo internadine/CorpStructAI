@@ -8,32 +8,8 @@ import BusinessConsultantChat from '../components/BusinessConsultantChat';
 import ProjectManager from '../components/ProjectManager';
 import { SubscriptionGate } from '../components/SubscriptionGate';
 import { Link } from 'react-router-dom';
-import { Company, Person, StructureData, CompanyType, Project, ProjectType } from '../types';
+import { Company, Person, StructureData, CompanyType, Project, ProjectType, getDefaultNodeTypeForProjectType, getDefaultNodeNameForProjectType } from '../types';
 import { getProjects, saveProjectToStorage, deleteProject } from '../services/projectService';
-import { CompanyType as CT } from '../types';
-
-// Initial Demo Data (German)
-const INITIAL_DATA: StructureData = {
-  companies: [
-    { id: '1', name: 'Global Invest Holding', type: CompanyType.HOLDING, parentIds: [] },
-    { id: '2', name: 'Tech Solutions GmbH', type: CompanyType.GMBH, parentIds: ['1'] },
-    { id: '3', name: 'Immobilien Verwaltung KG', type: CompanyType.KG, parentIds: ['1'] },
-    { id: '4', name: 'Innovations UG', type: CompanyType.UG, parentIds: ['2'] },
-  ],
-  people: [
-    { id: 'p1', name: 'Dr. Alice Müller', role: 'GF', companyId: '1' },
-    { id: 'p2', name: 'Bob Schmidt', role: 'CTO', companyId: '2' },
-    { id: 'p3', name: 'Charlie Tag', role: 'Verwalter', companyId: '3' },
-  ]
-};
-
-const INITIAL_PROJECT: Project = {
-  id: 'default',
-  name: 'Example Structure',
-  lastModified: Date.now(),
-  data: INITIAL_DATA,
-  projectType: ProjectType.CORPORATE_STRUCTURE
-};
 
 const Dashboard: React.FC = () => {
   // State
@@ -56,13 +32,14 @@ const Dashboard: React.FC = () => {
           setProjects(loadedProjects);
           setActiveProjectId(loadedProjects[0].id);
         } else {
-          setProjects([INITIAL_PROJECT]);
-          setActiveProjectId(INITIAL_PROJECT.id);
+          // No projects exist - start with empty list
+          setProjects([]);
+          setActiveProjectId('');
         }
       } catch (e) {
         console.error("Error loading projects", e);
-        setProjects([INITIAL_PROJECT]);
-        setActiveProjectId(INITIAL_PROJECT.id);
+        setProjects([]);
+        setActiveProjectId('');
       } finally {
         setLoading(false);
       }
@@ -88,14 +65,19 @@ const Dashboard: React.FC = () => {
     }
   }, [projects, activeProjectId, loading]);
 
+  // Clear editing company when switching projects
+  useEffect(() => {
+    setEditingCompany(null);
+  }, [activeProjectId]);
+
   // Derived Active Data
-  const activeProjectRaw = projects.find(p => p.id === activeProjectId) || projects[0] || INITIAL_PROJECT;
-  // Ensure projectType is always set (for backward compatibility with old data)
-  const activeProject: Project = {
+  // If no active project, create a temporary empty project for rendering
+  const activeProjectRaw = projects.find(p => p.id === activeProjectId) || projects[0];
+  const activeProject: Project | null = activeProjectRaw ? {
     ...activeProjectRaw,
     projectType: activeProjectRaw.projectType || ProjectType.CORPORATE_STRUCTURE
-  };
-  const data = activeProject.data;
+  } : null;
+  const data: StructureData = activeProject?.data || { companies: [], people: [] };
 
   // -- Data Modification Helpers --
   
@@ -112,10 +94,16 @@ const Dashboard: React.FC = () => {
   };
 
   const handleAddCompany = () => {
+    if (!activeProject) return;
+    
+    const projectType = activeProject.projectType || ProjectType.CORPORATE_STRUCTURE;
+    const defaultType = getDefaultNodeTypeForProjectType(projectType);
+    const defaultName = getDefaultNodeNameForProjectType(projectType);
+    
     const newCompany: Company = {
       id: crypto.randomUUID(),
-      name: 'Neue Firma',
-      type: CompanyType.GMBH,
+      name: defaultName,
+      type: defaultType,
       parentIds: []
     };
     const newData = { ...data, companies: [...data.companies, newCompany] };
@@ -365,7 +353,7 @@ const Dashboard: React.FC = () => {
 
       pdf.addPage();
       pdf.setFontSize(16);
-      pdf.text('Detaillierte Unternehmensinformationen', 20, 20);
+      pdf.text('Detaillierte Strukturinformationen', 20, 20);
       
       let yPos = 30;
       const pageHeight = 210;
@@ -459,15 +447,34 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  // If no projects exist, show empty state
+  if (projects.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-slate-800 mb-4">No Projects Yet</h2>
+          <p className="text-slate-600 mb-6">Create your first project to get started.</p>
+          <button
+            onClick={() => setIsProjectManagerOpen(true)}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+          >
+            Create Project
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen w-full font-sans">
       {/* Sidebar Panel */}
       <div className="flex flex-col glass-strong h-full relative z-20 w-96 shrink-0 shadow-2xl overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           <Sidebar 
-            currentProjectName={activeProject.name}
+            currentProjectName={activeProject?.name || ''}
             companies={data.companies} 
             people={data.people}
+            projectType={activeProject?.projectType}
             onAddCompany={handleAddCompany}
             onSelectCompany={setEditingCompany}
             onClear={handleClear}
@@ -494,7 +501,7 @@ const Dashboard: React.FC = () => {
       </main>
 
       {/* Overlays */}
-      {editingCompany && (
+      {editingCompany && activeProject && (
         <CompanyEditor
           company={editingCompany}
           allCompanies={data.companies}
@@ -537,7 +544,7 @@ const Dashboard: React.FC = () => {
             structureData={data}
             isOpen={isChatOpen}
             onClose={() => setIsChatOpen(false)}
-            country={activeProject.country}
+            country={activeProject?.country}
           />
         </SubscriptionGate>
       )}
@@ -573,8 +580,8 @@ const Dashboard: React.FC = () => {
             structureData={data}
             isOpen={isBusinessChatOpen}
             onClose={() => setIsBusinessChatOpen(false)}
-            projectType={activeProject.projectType}
-            country={activeProject.country}
+            projectType={activeProject?.projectType}
+            country={activeProject?.country}
           />
         </SubscriptionGate>
       )}
@@ -583,7 +590,10 @@ const Dashboard: React.FC = () => {
         <ProjectManager 
           projects={projects}
           activeProjectId={activeProjectId}
-          onSelectProject={(id) => { setActiveProjectId(id); setIsProjectManagerOpen(false); }}
+          onSelectProject={(id) => { 
+            setActiveProjectId(id); 
+            setIsProjectManagerOpen(false); 
+          }}
           onCreateProject={handleCreateProject}
           onDuplicateProject={handleDuplicateProject}
           onDeleteProject={handleDeleteProject}
@@ -598,7 +608,7 @@ const Dashboard: React.FC = () => {
           currentData={data} 
           onStructureGenerated={handleStructureGenerated}
           isApiKeyAvailable={true}
-          projectType={activeProject.projectType}
+          projectType={activeProject?.projectType}
           isOpen={isArchitectOpen}
           onClose={() => setIsArchitectOpen(false)}
         />
@@ -608,3 +618,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+

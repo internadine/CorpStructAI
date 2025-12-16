@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Company, CompanyType, Person, CompanyResource, ProjectType } from '../types';
+import { Company, CompanyType, Person, CompanyResource, ProjectType, getNodeTypesForProjectType } from '../types';
 
 interface CompanyEditorProps {
   company: Company;
@@ -100,6 +100,26 @@ const getLabelsForProjectType = (projectType?: ProjectType) => {
       businessPurpose: 'Real Estate Portfolio',
       parentLabel: 'Parent Structures'
     },
+    [ProjectType.PRINCE2_PROJECT]: {
+      entityName: 'Work Package/Product Name',
+      entityType: 'Type (Work Package, Product, Stage)',
+      personLabel: 'Team Members',
+      personName: 'Name',
+      personRole: 'Role (e.g. Project Manager, Team Manager)',
+      businessPurpose: 'Purpose/Description',
+      resources: 'Resources',
+      parentLabel: 'Parent Work Packages/Stages'
+    },
+    [ProjectType.PSMI_PROJECT]: {
+      entityName: 'Work Package/Deliverable Name',
+      entityType: 'Type (Work Package, Deliverable, Milestone)',
+      personLabel: 'Team Members',
+      personName: 'Name',
+      personRole: 'Role (e.g. Project Manager, Team Lead)',
+      businessPurpose: 'Purpose/Description',
+      resources: 'Resources',
+      parentLabel: 'Parent Work Packages/Phases'
+    },
     [ProjectType.CORPORATE_STRUCTURE]: labels
   };
 
@@ -116,6 +136,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
   const [newResourceValue, setNewResourceValue] = useState('');
   
   const labels = getLabelsForProjectType(projectType);
+  const availableTypes = getNodeTypesForProjectType(projectType);
 
   useEffect(() => {
     setFormData({ ...company });
@@ -215,7 +236,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-md p-4">
       <div className="glass-strong rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-white/40">
         <div className="p-5 border-b border-white/20 flex justify-between items-center">
-          <h2 className="font-bold text-slate-800 text-lg">Edit Company</h2>
+          <h2 className="font-bold text-slate-800 text-lg">Edit {labels.entityName}</h2>
           <button onClick={onClose} className="text-slate-600 hover:text-slate-800">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -237,13 +258,13 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
             </div>
             
             <div>
-              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">Legal Form</label>
+              <label className="block text-xs font-semibold text-slate-800 uppercase mb-1">{labels.entityType}</label>
               <select 
                 value={formData.type}
-                onChange={e => setFormData({ ...formData, type: e.target.value as CompanyType })}
+                onChange={e => setFormData({ ...formData, type: e.target.value })}
                 className="w-full p-2.5 glass border border-white/30 text-slate-900 rounded-xl text-sm backdrop-blur-xl"
               >
-                {Object.values(CompanyType).map(t => <option key={t} value={t}>{t}</option>)}
+                {availableTypes.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
 
@@ -279,7 +300,7 @@ const CompanyEditor: React.FC<CompanyEditorProps> = ({ company, allCompanies, pe
               <label className="block text-xs font-semibold text-slate-800 uppercase mb-2">{labels.parentLabel}</label>
               <div className="glass border border-white/30 rounded-xl p-3 max-h-60 overflow-y-auto space-y-3 backdrop-blur-xl">
                 {allCompanies.filter(c => c.id !== formData.id).length === 0 && (
-                  <p className="text-xs text-slate-700">No other companies available.</p>
+                  <p className="text-xs text-slate-700">No other {labels.plural.toLowerCase()} available.</p>
                 )}
                 {allCompanies
                   .filter(c => c.id !== formData.id) // Prevent self-parenting

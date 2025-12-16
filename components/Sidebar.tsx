@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Company, CompanyType, Person } from '../types';
+import { Company, CompanyType, Person, ProjectType, getNodeLabelForProjectType } from '../types';
 import { useAuth } from './Auth/AuthProvider';
 import { getCurrentSubscription } from '../services/subscriptionService';
 
@@ -8,6 +8,7 @@ interface SidebarProps {
   currentProjectName: string;
   companies: Company[];
   people: Person[];
+  projectType?: ProjectType;
   onAddCompany: () => void;
   onSelectCompany: (c: Company) => void;
   onClear: () => void;
@@ -24,7 +25,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ 
   currentProjectName,
   companies, 
-  people, 
+  people,
+  projectType,
   onAddCompany, 
   onSelectCompany, 
   onClear, 
@@ -37,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onOpenProjectManager,
   onRenameProject
 }) => {
+  const labels = getNodeLabelForProjectType(projectType);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(currentProjectName);
@@ -125,7 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <div className="p-4 space-y-2">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Companies</h2>
+          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">{labels.plural}</h2>
           <div className="flex gap-2 items-center">
             <button onClick={onClear} className="text-[10px] text-red-500 hover:text-red-700 hover:underline font-medium">
               Clear
@@ -136,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {companies.length === 0 ? (
           <div className="text-center py-8 border-2 border-dashed border-white/30 rounded-xl glass">
-            <p className="text-slate-700 text-sm font-medium">No companies yet.</p>
+            <p className="text-slate-700 text-sm font-medium">No {labels.plural.toLowerCase()} yet.</p>
             <p className="text-slate-600 text-xs mt-1">Use AI or add manually.</p>
           </div>
         ) : (
@@ -176,7 +179,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="w-full py-2.5 glass border border-white/30 hover:border-white/50 text-slate-800 rounded-xl text-sm font-medium shadow-sm transition-all hover:bg-white/30 flex items-center justify-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Add Company Manually
+          {labels.addButton}
         </button>
 
         <div className="grid grid-cols-1 gap-2">

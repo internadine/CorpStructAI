@@ -70,6 +70,25 @@ const PrivacyPage: React.FC = () => {
               </p>
 
               <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                Abonnement und Zahlungsdaten
+              </h3>
+              <p className="mb-4">
+                Bei der Anmeldung für ein kostenpflichtiges Abonnement erheben wir zusätzlich 
+                Zahlungsinformationen. Diese werden über unseren Zahlungsdienstleister verarbeitet 
+                und nicht direkt auf unseren Servern gespeichert. Wir speichern lediglich 
+                Abonnement-Status und Abrechnungsinformationen.
+              </p>
+
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                Nutzungsdaten
+              </h3>
+              <p className="mb-4">
+                Wir erfassen automatisch Informationen über Ihre Nutzung der Plattform, einschließlich 
+                Zugriffszeiten, genutzte Funktionen und erstellte Inhalte. Diese Daten dienen der 
+                Bereitstellung und Verbesserung unserer Dienstleistungen.
+              </p>
+
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
                 Firebase Services
               </h3>
               <p className="mb-4">
@@ -85,11 +104,62 @@ const PrivacyPage: React.FC = () => {
                   Firebase Datenschutzerklärung
                 </a>.
               </p>
+
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                KI-Dienste (OpenRouter)
+              </h3>
+              <p className="mb-4">
+                Für KI-gestützte Funktionen nutzen wir OpenRouter. Bei der Nutzung dieser Funktionen 
+                werden Ihre Anfragen an OpenRouter übermittelt. Bitte beachten Sie die{" "}
+                <a
+                  href="https://openrouter.ai/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  Datenschutzerklärung von OpenRouter
+                </a>.
+              </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-bold text-slate-900 mb-4">
-                4. Ihre Rechte
+                4. Datenweitergabe
+              </h2>
+              <p className="mb-4">
+                Ihre personenbezogenen Daten werden grundsätzlich nicht an Dritte weitergegeben. 
+                Ausnahmen gelten nur, soweit dies zur Erfüllung unserer vertraglichen Pflichten 
+                erforderlich ist oder gesetzlich vorgeschrieben ist. Wir arbeiten mit folgenden 
+                Dienstleistern zusammen:
+              </p>
+              <ul className="list-disc list-inside space-y-2 mb-4">
+                <li><strong>Google Cloud Platform (Firebase):</strong> Hosting und Datenspeicherung</li>
+                <li><strong>OpenRouter:</strong> KI-Dienste (nur bei Nutzung entsprechender Funktionen)</li>
+                <li><strong>Zahlungsdienstleister:</strong> Abwicklung von Zahlungen</li>
+              </ul>
+              <p className="mb-4">
+                Alle Dienstleister sind verpflichtet, Ihre Daten gemäß den geltenden 
+                Datenschutzbestimmungen zu behandeln.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">
+                5. Datenspeicherung und -löschung
+              </h2>
+              <p className="mb-4">
+                Wir speichern Ihre personenbezogenen Daten nur so lange, wie dies für die 
+                Erfüllung der Zwecke erforderlich ist, für die sie erhoben wurden, oder solange 
+                gesetzliche Aufbewahrungsfristen bestehen. Nach Beendigung Ihres Nutzerkontos 
+                werden Ihre Daten gelöscht, sofern keine gesetzlichen Aufbewahrungspflichten 
+                entgegenstehen. Abrechnungsdaten werden gemäß steuerrechtlichen Vorgaben 
+                (in der Regel 10 Jahre) aufbewahrt.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">
+                6. Ihre Rechte
               </h2>
               <p className="mb-2">
                 Sie haben jederzeit das Recht:
@@ -107,19 +177,62 @@ const PrivacyPage: React.FC = () => {
 
             <section>
               <h2 className="text-2xl font-bold text-slate-900 mb-4">
-                5. Cookies
+                7. Cookies und Tracking
               </h2>
               <p className="mb-4">
                 Diese Website nutzt technisch notwendige Cookies, die für den Betrieb der Website 
                 erforderlich sind. Diese Cookies werden automatisch gesetzt, wenn Sie die Website 
-                besuchen. Sie können Ihre Browser-Einstellungen so anpassen, dass Sie über das 
-                Setzen von Cookies informiert werden und Cookies nur im Einzelfall erlauben.
+                besuchen. Wir verwenden Cookies für:
+              </p>
+              <ul className="list-disc list-inside space-y-2 mb-4">
+                <li>Authentifizierung und Session-Verwaltung</li>
+                <li>Speicherung Ihrer Cookie-Präferenzen</li>
+                <li>Verbesserung der Funktionalität der Website</li>
+              </ul>
+              <p className="mb-4">
+                Sie können Ihre Browser-Einstellungen so anpassen, dass Sie über das Setzen von 
+                Cookies informiert werden und Cookies nur im Einzelfall erlauben. Bitte beachten 
+                Sie, dass die Deaktivierung von Cookies die Funktionalität der Website 
+                beeinträchtigen kann.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-bold text-slate-900 mb-4">
-                6. Änderungen dieser Datenschutzerklärung
+                8. Datensicherheit
+              </h2>
+              <p className="mb-4">
+                Wir setzen technische und organisatorische Maßnahmen ein, um Ihre personenbezogenen 
+                Daten vor Verlust, Manipulation oder unberechtigtem Zugriff zu schützen. Dazu gehören 
+                unter anderem Verschlüsselung, Zugriffskontrollen und regelmäßige Sicherheitsüberprüfungen.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">
+                9. Kontakt bei Datenschutzfragen
+              </h2>
+              <p className="mb-4">
+                Bei Fragen zum Datenschutz oder zur Ausübung Ihrer Rechte können Sie sich jederzeit 
+                an uns wenden:
+              </p>
+              <p className="mb-2">
+                <strong>Quantophant GmbH</strong><br />
+                Birkenweg 37<br />
+                83209 Prien am Chiemsee<br />
+                E-Mail:{" "}
+                <a
+                  href="mailto:nadine.wischmeier@quantophant.io"
+                  className="text-blue-600 hover:underline"
+                >
+                  nadine.wischmeier@quantophant.io
+                </a>
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">
+                10. Änderungen dieser Datenschutzerklärung
               </h2>
               <p>
                 Wir behalten uns vor, diese Datenschutzerklärung anzupassen, damit sie stets den 
@@ -142,3 +255,4 @@ const PrivacyPage: React.FC = () => {
 };
 
 export default PrivacyPage;
+

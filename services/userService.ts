@@ -56,3 +56,4 @@ export const getCurrentUserSettings = async () => {
   
   return await getUserSettings(user.uid);
 };
+

@@ -283,3 +283,4 @@ const BusinessConsultantChat: React.FC<BusinessConsultantChatProps> = ({ structu
 };
 
 export default BusinessConsultantChat;
+
